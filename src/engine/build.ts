@@ -8,6 +8,8 @@ import { generateSitemap } from "./seo.js";
 import { generateFeed } from "./feed.js";
 import { paginateCollection, readCollection, PaginationData } from "./pagination.js";
 import { minifyHtml } from "./minify.js";
+import { generateRedirects, generateHeaders } from "./redirects.js";
+import { buildCollections } from "./collections.js";
 import { PluginRunner } from "../plugins/runner.js";
 import { heading, success, error, info, dim } from "../utils/logger.js";
 
@@ -38,6 +40,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
 
   const engine = new TemplateEngine(projectRoot);
   const pages = collectMarkdownFiles(contentDir);
+  const collections = buildCollections(pages, contentDir);
   let pagesBuilt = 0;
   const errors: string[] = [];
 
@@ -92,15 +95,26 @@ export async function build(projectRoot: string): Promise<BuildResult> {
         );
         pagesBuilt += built;
       } else {
+        const pageUrl = htmlToUrl(htmlPath);
+        const canonicalUrl = `${config.site.url}${pageUrl}`;
+
+        const collectionsObj: Record<string, unknown> = {};
+        for (const [name, col] of collections) {
+          collectionsObj[name] = col.items;
+        }
+
         const html = engine.render(templateName, {
           ...pageData.frontMatter,
           title:
             (pageData.frontMatter.title as string) || config.site.title,
           content: pageData.htmlContent,
+          excerpt: (pageData.frontMatter.description as string) || "",
           site: config.site,
+          collections: collectionsObj,
           page: {
-            url: htmlToUrl(htmlPath),
+            url: pageUrl,
             slug: pageData.slug,
+            canonical: canonicalUrl,
           },
         });
 
@@ -155,6 +169,18 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     if (feed) {
       writeFileSync(join(outputDir, feed.filename), feed.content, "utf-8");
     }
+  }
+
+  // Generate redirects file
+  const redirects = generateRedirects(projectRoot);
+  if (redirects) {
+    writeFileSync(join(outputDir, "_redirects"), redirects, "utf-8");
+  }
+
+  // Generate headers file
+  const headers = generateHeaders(projectRoot);
+  if (headers) {
+    writeFileSync(join(outputDir, "_headers"), headers, "utf-8");
   }
 
   // Generate 404 page if content/404.md exists
