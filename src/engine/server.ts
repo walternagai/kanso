@@ -1,10 +1,10 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, existsSync, statSync } from "fs";
-import { join, extname } from "path";
+import { join, extname, relative } from "path";
 import { WebSocketServer, WebSocket } from "ws";
 import chokidar from "chokidar";
 import { build } from "./build.js";
-import { heading, success, info } from "../utils/logger.js";
+import { heading, success, info, error } from "../utils/logger.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
@@ -24,20 +24,38 @@ const MIME_TYPES: Record<string, string> = {
   ".txt": "text/plain",
 };
 
-const WS_CLIENT_SCRIPT = `
+function getWsClientScript(port: number): string {
+  return `
 <script>
 (function() {
   var ws = new WebSocket('ws://' + location.host + '/__kanso_ws');
-  var reconnectTimer;
   ws.onmessage = function(e) {
-    if (e.data === 'reload') location.reload();
+    var data = JSON.parse(e.data);
+    if (data.type === 'reload') {
+      location.reload();
+    } else if (data.type === 'css') {
+      var links = document.querySelectorAll('link[rel="stylesheet"]');
+      links.forEach(function(link) {
+        link.href = link.href.split('?')[0] + '?t=' + Date.now();
+      });
+    } else if (data.type === 'error') {
+      var overlay = document.getElementById('__kanso_error');
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = '__kanso_error';
+        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fee;color:#c00;padding:16px;font-family:monospace;z-index:99999;white-space:pre-wrap;border-bottom:2px solid #c00';
+        document.body.appendChild(overlay);
+      }
+      overlay.textContent = data.message;
+    }
   };
   ws.onclose = function() {
-    reconnectTimer = setTimeout(function() { location.reload(); }, 1000);
+    setTimeout(function() { location.reload(); }, 1000);
   };
 })();
 </script>
 `;
+}
 
 export interface DevServerOptions {
   port?: number;
@@ -58,7 +76,7 @@ export async function devServer(
   const outputDir = join(projectRoot, "dist");
 
   const server = createServer((req, res) => {
-    handleRequest(req, res, outputDir);
+    handleRequest(req, res, outputDir, port);
   });
 
   const wss = new WebSocketServer({ server, path: "/__kanso_ws" });
@@ -68,6 +86,15 @@ export async function devServer(
     clients.add(ws);
     ws.on("close", () => clients.delete(ws));
   });
+
+  function broadcast(data: object) {
+    const msg = JSON.stringify(data);
+    for (const client of clients) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(msg);
+      }
+    }
+  }
 
   const watchDirs = ["content", "layouts", "components", "assets", "public"];
   const watchPaths = watchDirs.map((d) => join(projectRoot, d));
@@ -79,20 +106,34 @@ export async function devServer(
   });
 
   let rebuildTimer: ReturnType<typeof setTimeout> | null = null;
+  let isBuilding = false;
 
   watcher.on("all", (event, filePath) => {
+    if (isBuilding) return;
+
+    const ext = extname(filePath);
+    const isCssChange = ext === ".css";
+    const relativePath = relative(projectRoot, filePath);
+
     if (rebuildTimer) clearTimeout(rebuildTimer);
     rebuildTimer = setTimeout(async () => {
+      isBuilding = true;
       try {
         await build(projectRoot);
-        for (const client of clients) {
-          if (client.readyState === WebSocket.OPEN) {
-            client.send("reload");
-          }
+
+        if (isCssChange) {
+          broadcast({ type: "css" });
+          info(`CSS updated: ${relativePath}`);
+        } else {
+          broadcast({ type: "reload" });
+          info(`Rebuilt: ${relativePath}`);
         }
-        info(`Rebuilt after ${event}: ${filePath.replace(projectRoot, "")}`);
-      } catch {
-        // Build errors are logged by the build function
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        broadcast({ type: "error", message: msg });
+        error(`Build error: ${msg}`);
+      } finally {
+        isBuilding = false;
       }
     }, 300);
   });
@@ -114,7 +155,8 @@ export async function devServer(
 function handleRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  outputDir: string
+  outputDir: string,
+  port: number
 ): void {
   let urlPath = req.url || "/";
   if (urlPath === "/") urlPath = "/index.html";
@@ -128,7 +170,7 @@ function handleRequest(
 
     if (ext === ".html") {
       let html = content.toString();
-      html = html.replace("</body>", `${WS_CLIENT_SCRIPT}</body>`);
+      html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
       res.writeHead(200, { "Content-Type": contentType });
       res.end(html);
     } else {
@@ -139,7 +181,7 @@ function handleRequest(
     const indexPath = join(outputDir, urlPath, "index.html");
     if (existsSync(indexPath)) {
       let html = readFileSync(indexPath, "utf-8");
-      html = html.replace("</body>", `${WS_CLIENT_SCRIPT}</body>`);
+      html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(html);
     } else {
