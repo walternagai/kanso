@@ -2,6 +2,25 @@
 
 All notable changes to Kanso CLI will be documented in this file.
 
+## [1.0.0] - 2026-05-31
+
+### Added
+- `kanso clean` - remove dist/ directory
+- `kanso serve` - serve dist/ locally
+- Draft pages excluded from production build
+- 404 page from content/404.md
+- Template filters: formatDate, excerpt, dateToISO, dateToUTC
+- Collections: group posts by directory and tag
+- Tag collections: /tags/web/, /tags/dev/
+- Canonical URLs in templates
+- Redirects file (_redirects) copied to dist/
+- Headers file (_headers) copied to dist/
+- i18n: language detection and path extraction
+- Search index generation for client-side search
+- Cache busting with MD5 hashes
+- GitHub Actions CI (Linux/macOS/Windows)
+- CHANGELOG.md and CONTRIBUTING.md
+
 ## [0.3.0] - 2026-05-31
 
 ### Added

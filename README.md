@@ -4,10 +4,6 @@
 
 Kanso CLI is a modern, simple, and fast static site generator for HTML, CSS, JavaScript, and Markdown. No heavy client-side frameworks — just clean, portable output.
 
-## Status
-
-✅ **v0.1.0 — MVP Complete**
-
 ## Quick Start
 
 ```bash
@@ -17,8 +13,11 @@ npm install -g kanso
 # Create a new project
 kanso init my-site
 
-# Start dev server with hot reload
+# Install a theme
 cd my-site
+kanso theme add academic
+
+# Start dev server
 kanso dev
 
 # Build for production
@@ -28,32 +27,87 @@ kanso build
 kanso deploy
 ```
 
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `kanso init <name>` | Create a new project |
+| `kanso post <title>` | Create a new blog post |
+| `kanso dev` | Start dev server with hot reload |
+| `kanso build` | Build for production |
+| `kanso deploy` | Deploy to GitHub Pages or Netlify |
+| `kanso clean` | Remove dist/ directory |
+| `kanso serve` | Serve dist/ locally |
+| `kanso theme list` | List available themes |
+| `kanso theme add <name>` | Install a theme |
+
+## Themes
+
+| Theme | Description |
+|-------|-------------|
+| `blog` | Clean blog with dark mode |
+| `docs` | Documentation with sidebar |
+| `academic` | Teaching, research, and extension |
+| `research-group` | Research group pages |
+
+All themes support **light/dark mode** toggle.
+
 ## Features
 
-- **`kanso init`** — Scaffold a new project with layouts, components, assets, and config
-- **`kanso dev`** — Local server with hot reload via WebSocket
-- **`kanso build`** — Generate static HTML/CSS/JS to `dist/`
-- **`kanso deploy`** — Deploy to GitHub Pages or Netlify
-- **Markdown** — YAML front matter, CommonMark, syntax highlighting
-- **Templates** — Nunjucks-based with `{% extends %}`, `{% block %}`, `{% include %}`
-- **SEO** — Auto-generated sitemap.xml, robots.txt, meta tags
-- **RSS** — Auto-generated RSS feed from posts
-- **Pagination** — Configurable page splitting for post lists
+- **Markdown** with YAML front matter, syntax highlighting
+- **Templates** with Nunjucks (extends, blocks, includes)
+- **Pagination** with configurable items per page
+- **Collections** for grouping posts by directory or tag
+- **Feeds** RSS, Atom, and JSON Feed
+- **SEO** sitemap.xml, robots.txt, canonical URLs
+- **Drafts** exclude pages with `draft: true`
+- **404 page** custom error page from `content/404.md`
+- **Excerpts** auto-generated from content
+- **Date filters** `{{ date | formatDate("DD/MM/YYYY") }}`
+- **Plugin API** extend with custom hooks
+- **i18n** multilingual content support
+- **Search** client-side search index
+- **Deploy** GitHub Pages and Netlify
 
-## Tech Stack
+## Configuration
 
-- Node.js + TypeScript
-- Nunjucks (templates)
-- markdown-it (Markdown rendering)
-- highlight.js (syntax highlighting)
-- gray-matter (front matter parsing)
-- chokidar (file watching)
-- ws (WebSocket for hot reload)
+```js
+// kanso.config.js
+export default {
+  site: {
+    title: "My Site",
+    url: "https://example.com",
+    language: "pt_BR"
+  },
+  feed: {
+    enabled: true,
+    type: "rss"  // "rss" | "atom" | "json"
+  },
+  build: {
+    minify: true
+  },
+  pagination: {
+    perPage: 10
+  }
+}
+```
+
+## Plugin API
+
+```js
+export default function(api) {
+  api.on("build:start", (ctx) => { /* ... */ });
+  api.on("page:render", (page) => page);
+  api.on("build:end", (ctx) => { /* ... */ });
+}
+```
 
 ## Documentation
 
 - [PRD — Product Requirements Document](docs/prd-kanso-cli.md)
 - [PRPs — Product Requirements Prompts](docs/prps-kanso-cli.md)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md)
 
 ## License
 
