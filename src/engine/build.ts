@@ -8,6 +8,7 @@ import { generateSitemap } from "./seo.js";
 import { generateFeed } from "./feed.js";
 import { paginateCollection, readCollection, PaginationData } from "./pagination.js";
 import { minifyHtml } from "./minify.js";
+import { PluginRunner } from "../plugins/runner.js";
 import { heading, success, error, info, dim } from "../utils/logger.js";
 
 export interface BuildResult {
@@ -17,12 +18,18 @@ export interface BuildResult {
   totalSize: number;
 }
 
+const pluginRunner = new PluginRunner();
+
 export async function build(projectRoot: string): Promise<BuildResult> {
   const startTime = Date.now();
+
+  await pluginRunner.loadPlugins(projectRoot);
 
   const config = await loadConfig(projectRoot);
   const contentDir = join(projectRoot, config.content.dir);
   const outputDir = join(projectRoot, config.output.dir);
+
+  await pluginRunner.runHook("config:loaded", config);
 
   if (existsSync(outputDir)) {
     rmSync(outputDir, { recursive: true, force: true });
@@ -33,6 +40,13 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   const pages = collectMarkdownFiles(contentDir);
   let pagesBuilt = 0;
   const errors: string[] = [];
+
+  await pluginRunner.runHook("build:start", {
+    projectRoot,
+    config,
+    pages,
+    startTime,
+  });
 
   // Build regular pages
   for (const page of pages) {
@@ -85,10 +99,29 @@ export async function build(projectRoot: string): Promise<BuildResult> {
           },
         });
 
-        const finalHtml = config.build.minify ? minifyHtml(html) : html;
+        const pageCtx = await pluginRunner.runHook("page:render", {
+          filePath: page,
+          slug: pageData.slug,
+          frontMatter: pageData.frontMatter,
+          htmlContent: pageData.htmlContent,
+          outputHtml: html,
+        }) as { outputHtml: string };
+
+        const finalHtml = config.build.minify
+          ? minifyHtml(pageCtx.outputHtml)
+          : pageCtx.outputHtml;
         const destPath = join(outputDir, htmlPath);
         mkdirSync(dirname(destPath), { recursive: true });
         writeFileSync(destPath, finalHtml, "utf-8");
+
+        await pluginRunner.runHook("page:done", {
+          filePath: page,
+          slug: pageData.slug,
+          frontMatter: pageData.frontMatter,
+          htmlContent: pageData.htmlContent,
+          outputHtml: finalHtml,
+        });
+
         pagesBuilt++;
       }
     } catch (e: unknown) {
@@ -142,6 +175,15 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   } else {
     error("Build failed with no pages generated.");
   }
+
+  await pluginRunner.runHook("build:end", {
+    projectRoot,
+    config,
+    pages,
+    startTime,
+    pagesBuilt,
+    duration: buildTime,
+  });
 
   return { pages: pagesBuilt, assetsCopied: assetResult.filesCopied, buildTime, totalSize };
 }
