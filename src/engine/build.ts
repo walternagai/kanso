@@ -1,10 +1,12 @@
-import { readdirSync, mkdirSync, writeFileSync, existsSync, rmSync, statSync } from "fs";
+import { readdirSync, mkdirSync, writeFileSync, existsSync, rmSync, statSync, readFileSync } from "fs";
 import { join, relative, dirname } from "path";
+import matter from "gray-matter";
 import { parseContent, PageData } from "./content.js";
 import { TemplateEngine } from "./template.js";
 import { copyAssets } from "./assets.js";
 import { generateSitemap } from "./seo.js";
 import { generateFeed } from "./feed.js";
+import { paginateCollection, readCollection, PaginationData } from "./pagination.js";
 import { heading, success, error, info, dim } from "../utils/logger.js";
 
 export interface BuildResult {
@@ -31,6 +33,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   let pagesBuilt = 0;
   const errors: string[] = [];
 
+  // Build regular pages
   for (const page of pages) {
     try {
       const pageData = parseContent(page);
@@ -40,22 +43,52 @@ export async function build(projectRoot: string): Promise<BuildResult> {
       const templateName =
         (pageData.frontMatter.layout as string) || "base";
 
-      const html = engine.render(templateName, {
-        ...pageData.frontMatter,
-        title:
-          (pageData.frontMatter.title as string) || config.site.title,
-        content: pageData.htmlContent,
-        site: config.site,
-        page: {
-          url: htmlToUrl(htmlPath),
-          slug: pageData.slug,
-        },
-      });
+      // Check if this page has pagination config
+      const paginationConfig = pageData.frontMatter.pagination as
+        | { collection?: string; perPage?: number }
+        | undefined;
 
-      const destPath = join(outputDir, htmlPath);
-      mkdirSync(dirname(destPath), { recursive: true });
-      writeFileSync(destPath, html, "utf-8");
-      pagesBuilt++;
+      if (paginationConfig && paginationConfig.collection) {
+        // For paginated pages, re-parse without Markdown rendering
+        // so Nunjucks tags in content are not escaped
+        const raw = readFileSync(page, "utf-8");
+        const { data: fmData } = matter(raw);
+        const rawPageData: PageData = {
+          frontMatter: fmData,
+          content: raw.replace(/^---[\s\S]*?---\n?/, ""),
+          htmlContent: "", // Not used for paginated pages
+          filePath: page,
+          slug: pageData.slug,
+        };
+
+        const built = await buildPaginatedPage(
+          engine,
+          rawPageData,
+          paginationConfig,
+          contentDir,
+          outputDir,
+          config,
+          projectRoot
+        );
+        pagesBuilt += built;
+      } else {
+        const html = engine.render(templateName, {
+          ...pageData.frontMatter,
+          title:
+            (pageData.frontMatter.title as string) || config.site.title,
+          content: pageData.htmlContent,
+          site: config.site,
+          page: {
+            url: htmlToUrl(htmlPath),
+            slug: pageData.slug,
+          },
+        });
+
+        const destPath = join(outputDir, htmlPath);
+        mkdirSync(dirname(destPath), { recursive: true });
+        writeFileSync(destPath, html, "utf-8");
+        pagesBuilt++;
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       errors.push(`${relative(projectRoot, page)}: ${msg}`);
@@ -109,6 +142,102 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   }
 
   return { pages: pagesBuilt, assetsCopied: assetResult.filesCopied, buildTime, totalSize };
+}
+
+async function buildPaginatedPage(
+  engine: TemplateEngine,
+  pageData: PageData,
+  paginationConfig: { collection?: string; perPage?: number },
+  contentDir: string,
+  outputDir: string,
+  config: Awaited<ReturnType<typeof loadConfig>>,
+  projectRoot: string
+): Promise<number> {
+  const collectionName = paginationConfig.collection || "posts";
+  const perPage =
+    paginationConfig.perPage || config.pagination.perPage || 10;
+
+  // Collect all markdown files in the collection directory
+  const collectionDir = join(contentDir, collectionName);
+  const collectionFiles = collectMarkdownFiles(collectionDir);
+  const collection = readCollection(collectionFiles, collectionDir);
+
+  // Make URLs relative to the paginated page's location
+  const relativePath = relative(contentDir, pageData.filePath);
+  const basePath = markdownToHtmlPath(relativePath)
+    .replace(/index\.html$/, "")
+    .replace(/^\//, "");
+
+  const collectionWithUrls = collection.map((item) => ({
+    ...item,
+    url: basePath ? `/${basePath}${item.url}` : item.url,
+  }));
+
+  const paginatedPages = paginateCollection(collectionWithUrls, {
+    perPage,
+  }).map((p) => ({
+    ...p,
+    prev: p.prev
+      ? basePath
+        ? `/${basePath}${p.prev.replace(/^\//, "")}`
+        : p.prev
+      : null,
+    next: p.next
+      ? basePath
+        ? `/${basePath}${p.next.replace(/^\//, "")}`
+        : p.next
+      : null,
+    pages: p.pages.map((pg) => ({
+      ...pg,
+      url: basePath ? `/${basePath}${pg.url.replace(/^\//, "")}` : pg.url,
+    })),
+  }));
+
+  let pagesBuilt = 0;
+
+  for (const paginatedPage of paginatedPages) {
+    const templateName =
+      (pageData.frontMatter.layout as string) || "base";
+
+    // Render content as Nunjucks template (not Markdown)
+    const renderedContent = engine.renderString(pageData.content, {
+      ...pageData.frontMatter,
+      pagination: paginatedPage,
+      site: config.site,
+    });
+
+    const html = engine.render(templateName, {
+      ...pageData.frontMatter,
+      title:
+        (pageData.frontMatter.title as string) || config.site.title,
+      content: renderedContent,
+      pagination: paginatedPage,
+      site: config.site,
+      page: {
+        url: paginatedPage.currentPage === 1
+          ? `/${basePath}`
+          : `/${basePath}page/${paginatedPage.currentPage}/`,
+        slug: pageData.slug,
+      },
+    });
+
+    const pagePath =
+      paginatedPage.currentPage === 1
+        ? join(outputDir, basePath, "index.html")
+        : join(
+            outputDir,
+            basePath,
+            "page",
+            String(paginatedPage.currentPage),
+            "index.html"
+          );
+
+    mkdirSync(dirname(pagePath), { recursive: true });
+    writeFileSync(pagePath, html, "utf-8");
+    pagesBuilt++;
+  }
+
+  return pagesBuilt;
 }
 
 function collectMarkdownFiles(dir: string): string[] {
