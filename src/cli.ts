@@ -4,6 +4,7 @@ import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
 import { buildCommand } from "./commands/build.js";
+import { devCommand } from "./commands/dev.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,6 +29,13 @@ program
   .option("-f, --force", "Overwrite existing directory")
   .option("-y, --yes", "Skip prompts and use defaults")
   .action(initCommand);
+
+program
+  .command("dev")
+  .description("Start development server with hot reload")
+  .option("-p, --port <port>", "Port to serve on", "3000")
+  .option("--host <host>", "Host to bind to", "localhost")
+  .action(devCommand);
 
 program
   .command("build")
