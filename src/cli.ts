@@ -4,6 +4,7 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
+import { postCommand } from "./commands/post.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
@@ -31,6 +32,15 @@ program
   .option("-f, --force", "Overwrite existing directory")
   .option("-y, --yes", "Skip prompts and use defaults")
   .action(initCommand);
+
+program
+  .command("post <title>")
+  .description("Create a new blog post")
+  .option("-d, --date <date>", "Publication date (YYYY-MM-DD)")
+  .option("-t, --tags <tags>", "Comma-separated tags")
+  .option("-l, --layout <layout>", "Template layout", "post")
+  .option("--description <desc>", "Post description for SEO")
+  .action(postCommand);
 
 program
   .command("dev")
