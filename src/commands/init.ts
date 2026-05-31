@@ -12,7 +12,7 @@ const TEMPLATES = {
   site: {
     title: "My Kanso Site",
     url: "https://example.com",
-    language: "pt_BR"
+    language: "en"
   },
   content: {
     dir: "content"

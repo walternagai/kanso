@@ -29,6 +29,17 @@ program
   .description("Build static sites with quiet speed.")
   .version(pkg.version);
 
+program.addHelpText("after", `
+Examples:
+  kanso init my-site        Create a new project
+  kanso post "My Post"      Create a new blog post
+  kanso dev                 Start dev server with hot reload
+  kanso build               Build for production
+  kanso deploy --dry-run    Preview deployment
+  kanso theme list          List available themes
+  kanso theme add academic  Install a theme
+`);
+
 program
   .command("init <project-name>")
   .description("Create a new Kanso project")
@@ -61,7 +72,7 @@ program
   .command("deploy")
   .description("Deploy the site to a hosting provider")
   .option("--dry-run", "Preview deployment without publishing")
-  .option("--provider <provider>", "Override deploy provider")
+  .option("--provider <provider>", "Deploy provider (github-pages, netlify)")
   .option("--message <message>", "Custom commit message")
   .action(deployCommand);
 

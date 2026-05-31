@@ -92,7 +92,19 @@ async function deployGitHubPages(
     console.log(`  URL: ${url}`);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : String(e);
-    error(`GitHub Pages deploy failed: ${msg}`);
+
+    if (msg.includes("Could not resolve host")) {
+      error("Network error: Could not connect to GitHub.");
+      info("Check your internet connection and try again.");
+    } else if (msg.includes("Authentication failed") || msg.includes("403")) {
+      error("Authentication failed: Invalid or missing GitHub token.");
+      info("Set GITHUB_TOKEN environment variable or configure SSH key.");
+    } else if (msg.includes("does not exist") || msg.includes("does not have a repository")) {
+      error(`Repository not found: ${repo}`);
+      info("Verify the repo name in kanso.config.js and ensure it exists on GitHub.");
+    } else {
+      error(`GitHub Pages deploy failed: ${msg}`);
+    }
     process.exit(1);
   }
 }

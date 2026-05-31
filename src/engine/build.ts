@@ -221,8 +221,10 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     console.log("");
   }
 
-  if (pagesBuilt > 0) {
+  if (pagesBuilt > 0 && errors.length === 0) {
     success(`Build successful! Output in ${config.output.dir}/`);
+  } else if (pagesBuilt > 0 && errors.length > 0) {
+    error(`Build completed with ${errors.length} error(s). Output in ${config.output.dir}/`);
   } else {
     error("Build failed with no pages generated.");
   }

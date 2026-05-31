@@ -1,7 +1,7 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, existsSync, statSync } from "fs";
 import { join, extname } from "path";
-import { heading, info } from "../utils/logger.js";
+import { heading, error, info } from "../utils/logger.js";
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
@@ -27,7 +27,7 @@ export function serveCommand(options: ServeOptions): void {
   const outputDir = join(process.cwd(), "dist");
 
   if (!existsSync(outputDir)) {
-    info("dist/ not found. Run `kanso build` first.");
+    error("dist/ not found. Run `kanso build` first.");
     process.exit(1);
   }
 
