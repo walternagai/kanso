@@ -26,6 +26,9 @@ export interface KansoConfig {
   pagination: {
     perPage: number;
   };
+  build: {
+    minify: boolean;
+  };
   deploy: {
     provider: "github-pages" | "netlify";
   };
@@ -58,6 +61,9 @@ export const defaultConfig: KansoConfig = {
   },
   pagination: {
     perPage: 10,
+  },
+  build: {
+    minify: false,
   },
   deploy: {
     provider: "github-pages",

@@ -7,6 +7,7 @@ import { copyAssets } from "./assets.js";
 import { generateSitemap } from "./seo.js";
 import { generateFeed } from "./feed.js";
 import { paginateCollection, readCollection, PaginationData } from "./pagination.js";
+import { minifyHtml } from "./minify.js";
 import { heading, success, error, info, dim } from "../utils/logger.js";
 
 export interface BuildResult {
@@ -84,9 +85,10 @@ export async function build(projectRoot: string): Promise<BuildResult> {
           },
         });
 
+        const finalHtml = config.build.minify ? minifyHtml(html) : html;
         const destPath = join(outputDir, htmlPath);
         mkdirSync(dirname(destPath), { recursive: true });
-        writeFileSync(destPath, html, "utf-8");
+        writeFileSync(destPath, finalHtml, "utf-8");
         pagesBuilt++;
       }
     } catch (e: unknown) {
@@ -221,6 +223,7 @@ async function buildPaginatedPage(
       },
     });
 
+    const finalHtml = config.build.minify ? minifyHtml(html) : html;
     const pagePath =
       paginatedPage.currentPage === 1
         ? join(outputDir, basePath, "index.html")
@@ -233,7 +236,7 @@ async function buildPaginatedPage(
           );
 
     mkdirSync(dirname(pagePath), { recursive: true });
-    writeFileSync(pagePath, html, "utf-8");
+    writeFileSync(pagePath, finalHtml, "utf-8");
     pagesBuilt++;
   }
 
