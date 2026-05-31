@@ -80,7 +80,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   if (config.feed.enabled) {
     const feed = generateFeed(pages, contentDir, config);
     if (feed) {
-      writeFileSync(join(outputDir, "rss.xml"), feed, "utf-8");
+      writeFileSync(join(outputDir, feed.filename), feed.content, "utf-8");
     }
   }
 

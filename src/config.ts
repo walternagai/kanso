@@ -21,6 +21,7 @@ export interface KansoConfig {
   feed: {
     enabled: boolean;
     type: "rss" | "atom" | "json";
+    limit: number;
   };
   pagination: {
     perPage: number;
@@ -53,6 +54,7 @@ export const defaultConfig: KansoConfig = {
   feed: {
     enabled: false,
     type: "rss",
+    limit: 20,
   },
   pagination: {
     perPage: 10,
