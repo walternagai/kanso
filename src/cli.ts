@@ -8,6 +8,7 @@ import { postCommand } from "./commands/post.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
+import { themeListCommand, themeAddCommand } from "./commands/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -61,5 +62,20 @@ program
   .option("--provider <provider>", "Override deploy provider")
   .option("--message <message>", "Custom commit message")
   .action(deployCommand);
+
+const themeCmd = program
+  .command("theme")
+  .description("Manage themes");
+
+themeCmd
+  .command("list")
+  .description("List available themes")
+  .action(themeListCommand);
+
+themeCmd
+  .command("add <theme-name>")
+  .description("Install a theme into the current project")
+  .option("-f, --force", "Overwrite existing files")
+  .action(themeAddCommand);
 
 program.parse();
