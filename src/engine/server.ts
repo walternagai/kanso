@@ -4,25 +4,8 @@ import { join, extname, relative } from "path";
 import { WebSocketServer, WebSocket } from "ws";
 import chokidar from "chokidar";
 import { build } from "./build.js";
-import { heading, success, info, error } from "../utils/logger.js";
-
-const MIME_TYPES: Record<string, string> = {
-  ".html": "text/html",
-  ".css": "text/css",
-  ".js": "application/javascript",
-  ".json": "application/json",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".gif": "image/gif",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-  ".woff": "font/woff",
-  ".woff2": "font/woff2",
-  ".ttf": "font/ttf",
-  ".xml": "application/xml",
-  ".txt": "text/plain",
-};
+import { heading, info, error } from "../utils/logger.js";
+import { MIME_TYPES } from "./mime.js";
 
 function getWsClientScript(port: number): string {
   return `
@@ -185,8 +168,16 @@ function handleRequest(
       res.writeHead(200, { "Content-Type": "text/html" });
       res.end(html);
     } else {
-      res.writeHead(404, { "Content-Type": "text/html" });
-      res.end("<h1>404 Not Found</h1>");
+      const notFound = join(outputDir, "404.html");
+      if (existsSync(notFound)) {
+        let html = readFileSync(notFound, "utf-8");
+        html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
+        res.writeHead(404, { "Content-Type": "text/html" });
+        res.end(html);
+      } else {
+        res.writeHead(404, { "Content-Type": "text/html" });
+        res.end("<h1>404 Not Found</h1>");
+      }
     }
   }
 }

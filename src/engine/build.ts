@@ -41,6 +41,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   const engine = new TemplateEngine(projectRoot);
   const pages = collectMarkdownFiles(contentDir);
   const collections = buildCollections(pages, contentDir);
+  const publishedPages: string[] = [];
   let pagesBuilt = 0;
   const errors: string[] = [];
 
@@ -93,6 +94,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
           config,
           projectRoot
         );
+        publishedPages.push(page);
         pagesBuilt += built;
       } else {
         const pageUrl = htmlToUrl(htmlPath);
@@ -141,6 +143,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
           outputHtml: finalHtml,
         });
 
+        publishedPages.push(page);
         pagesBuilt++;
       }
     } catch (e: unknown) {
@@ -152,7 +155,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   const assetResult = copyAssets(projectRoot, outputDir);
 
   if (config.seo.sitemap) {
-    const sitemap = generateSitemap(pages, contentDir, config);
+    const sitemap = generateSitemap(publishedPages, contentDir, config);
     writeFileSync(join(outputDir, "sitemap.xml"), sitemap, "utf-8");
   }
 
@@ -165,7 +168,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   }
 
   if (config.feed.enabled) {
-    const feed = generateFeed(pages, contentDir, config);
+    const feed = generateFeed(publishedPages, contentDir, config);
     if (feed) {
       writeFileSync(join(outputDir, feed.filename), feed.content, "utf-8");
     }
@@ -225,8 +228,10 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     success(`Build successful! Output in ${config.output.dir}/`);
   } else if (pagesBuilt > 0 && errors.length > 0) {
     error(`Build completed with ${errors.length} error(s). Output in ${config.output.dir}/`);
+  } else if (assetResult.filesCopied > 0) {
+    success(`Build complete (assets only). Output in ${config.output.dir}/`);
   } else {
-    error("Build failed with no pages generated.");
+    info("No content or assets found. Nothing was built.");
   }
 
   await pluginRunner.runHook("build:end", {

@@ -115,4 +115,101 @@ describe("Theme System", () => {
     });
     assert.ok(output.includes("skipped"));
   });
+
+  it("shows theme info with file listing", () => {
+    const output = execSync(`node ${CLI_PATH} theme info blog`, {
+      encoding: "utf-8",
+    });
+    assert.ok(output.includes("Clean blog theme"));
+    assert.ok(output.includes("layouts/base.html"));
+    assert.ok(output.includes("layouts/post.html"));
+    assert.ok(output.includes("assets/css/style.css"));
+    assert.ok(output.includes("assets/js/theme.js"));
+  });
+
+  it("fails info with unknown theme", () => {
+    try {
+      execSync(`node ${CLI_PATH} theme info nonexistent`, {
+        stdio: "pipe",
+      });
+      assert.fail("Should have thrown");
+    } catch (e: any) {
+      assert.ok(e.stderr.toString().includes("not found"));
+    }
+  });
+
+  it("status detects installed themes", () => {
+    execSync(`node ${CLI_PATH} theme add blog --force`, { cwd: TEST_DIR });
+
+    const output = execSync(`node ${CLI_PATH} theme status`, {
+      cwd: TEST_DIR,
+      encoding: "utf-8",
+    });
+    assert.ok(output.includes("blog"));
+  });
+
+  it("status shows no themes when none installed", () => {
+    const emptyDir = join(TEST_DIR, "empty");
+    rmSync(emptyDir, { recursive: true, force: true });
+    mkdirSync(emptyDir, { recursive: true });
+
+    const output = execSync(`node ${CLI_PATH} theme status`, {
+      cwd: emptyDir,
+      encoding: "utf-8",
+    });
+    assert.ok(output.includes("No themes installed"));
+  });
+
+  it("status detects modified theme files", () => {
+    execSync(`node ${CLI_PATH} theme add blog --force`, { cwd: TEST_DIR });
+
+    const cssPath = join(TEST_DIR, "assets", "css", "style.css");
+    execSync(`echo "/* custom */" >> ${cssPath}`);
+
+    const output = execSync(`node ${CLI_PATH} theme status`, {
+      cwd: TEST_DIR,
+      encoding: "utf-8",
+    });
+    assert.ok(output.includes("modified"));
+  });
+
+  it("removes theme files", () => {
+    execSync(`node ${CLI_PATH} theme add blog --force`, { cwd: TEST_DIR });
+
+    execSync(`node ${CLI_PATH} theme remove blog --force`, {
+      cwd: TEST_DIR,
+    });
+
+    assert.ok(!existsSync(join(TEST_DIR, "layouts", "base.html")));
+    assert.ok(!existsSync(join(TEST_DIR, "layouts", "post.html")));
+    assert.ok(!existsSync(join(TEST_DIR, "layouts", "page.html")));
+    assert.ok(!existsSync(join(TEST_DIR, "assets", "css", "style.css")));
+    assert.ok(!existsSync(join(TEST_DIR, "assets", "js", "theme.js")));
+  });
+
+  it("remove skips modified files without --force", () => {
+    execSync(`node ${CLI_PATH} theme add blog --force`, { cwd: TEST_DIR });
+
+    const basePath = join(TEST_DIR, "layouts", "base.html");
+    execSync(`echo "<!-- changed -->" >> ${basePath}`);
+
+    const output = execSync(`node ${CLI_PATH} theme remove blog 2>&1`, {
+      cwd: TEST_DIR,
+      encoding: "utf-8",
+    });
+    assert.ok(output.includes("modified"));
+    assert.ok(existsSync(basePath));
+  });
+
+  it("fails remove with unknown theme", () => {
+    try {
+      execSync(`node ${CLI_PATH} theme remove nonexistent`, {
+        cwd: TEST_DIR,
+        stdio: "pipe",
+      });
+      assert.fail("Should have thrown");
+    } catch (e: any) {
+      assert.ok(e.stderr.toString().includes("not found"));
+    }
+  });
 });

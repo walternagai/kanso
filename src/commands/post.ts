@@ -20,10 +20,6 @@ function titleToSlug(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function titleToH1(title: string): string {
-  return title;
-}
-
 export function postCommand(title: string, options: PostOptions): void {
   if (!title) {
     error("Post title is required.");
@@ -65,7 +61,7 @@ date: ${date}
 layout: ${layout}${tagsLine}${descLine}
 ---
 
-# ${titleToH1(title)}
+# ${title}
 
 Write your post content here.
 `;

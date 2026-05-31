@@ -10,7 +10,13 @@ import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
 import { cleanCommand } from "./commands/clean.js";
 import { serveCommand } from "./commands/serve.js";
-import { themeListCommand, themeAddCommand } from "./commands/theme.js";
+import {
+  themeListCommand,
+  themeAddCommand,
+  themeRemoveCommand,
+  themeInfoCommand,
+  themeStatusCommand,
+} from "./commands/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,6 +44,9 @@ Examples:
   kanso deploy --dry-run    Preview deployment
   kanso theme list          List available themes
   kanso theme add academic  Install a theme
+  kanso theme status        Show installed themes
+  kanso theme info blog     Show theme details
+  kanso theme remove blog   Remove a theme
 `);
 
 program
@@ -101,5 +110,21 @@ themeCmd
   .description("Install a theme into the current project")
   .option("-f, --force", "Overwrite existing files")
   .action(themeAddCommand);
+
+themeCmd
+  .command("remove <theme-name>")
+  .description("Remove installed theme files from the project")
+  .option("-f, --force", "Remove even modified files")
+  .action(themeRemoveCommand);
+
+themeCmd
+  .command("info <theme-name>")
+  .description("Show details about a theme")
+  .action(themeInfoCommand);
+
+themeCmd
+  .command("status")
+  .description("Show installed themes and their modification status")
+  .action(themeStatusCommand);
 
 program.parse();
