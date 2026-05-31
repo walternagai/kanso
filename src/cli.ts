@@ -5,6 +5,7 @@ import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
+import { deployCommand } from "./commands/deploy.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -41,5 +42,13 @@ program
   .command("build")
   .description("Build the site for production")
   .action(buildCommand);
+
+program
+  .command("deploy")
+  .description("Deploy the site to a hosting provider")
+  .option("--dry-run", "Preview deployment without publishing")
+  .option("--provider <provider>", "Override deploy provider")
+  .option("--message <message>", "Custom commit message")
+  .action(deployCommand);
 
 program.parse();
