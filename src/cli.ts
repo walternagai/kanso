@@ -3,6 +3,7 @@ import { fileURLToPath } from "url";
 import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
+import { buildCommand } from "./commands/build.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -27,5 +28,10 @@ program
   .option("-f, --force", "Overwrite existing directory")
   .option("-y, --yes", "Skip prompts and use defaults")
   .action(initCommand);
+
+program
+  .command("build")
+  .description("Build the site for production")
+  .action(buildCommand);
 
 program.parse();
