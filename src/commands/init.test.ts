@@ -94,7 +94,7 @@ describe("kanso init", () => {
     );
     assert.ok(layout.includes("{{ title }}"));
     assert.ok(layout.includes("{{ site.title }}"));
-    assert.ok(layout.includes('{{ include "header" }}'));
+    assert.ok(layout.includes('{% include "header.html" %}'));
   });
 
   it("generates index.md with front matter", () => {

@@ -84,23 +84,23 @@ It's simple, fast, and portable.
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-  {{ include "header" }}
+  {% include "header.html" %}
   <main>
-    {{{ content }}}
+    {{ content | safe }}
   </main>
-  {{ include "footer" }}
+  {% include "footer.html" %}
 </body>
 </html>
 `,
-  "layouts/post.html": `{{ extends "base" }}
+  "layouts/post.html": `{% extends "base.html" %}
 
-{{ block "content" }}
+{% block content %}
 <article>
   <h1>{{ title }}</h1>
   <time>{{ date }}</time>
-  {{{ content }}}
+  {{ content | safe }}
 </article>
-{{ endblock }}
+{% endblock %}
 `,
   "components/header.html": `<header>
   <nav>
