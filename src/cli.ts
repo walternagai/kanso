@@ -8,6 +8,8 @@ import { postCommand } from "./commands/post.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
+import { cleanCommand } from "./commands/clean.js";
+import { serveCommand } from "./commands/serve.js";
 import { themeListCommand, themeAddCommand } from "./commands/theme.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -62,6 +64,17 @@ program
   .option("--provider <provider>", "Override deploy provider")
   .option("--message <message>", "Custom commit message")
   .action(deployCommand);
+
+program
+  .command("clean")
+  .description("Remove the dist/ directory")
+  .action(cleanCommand);
+
+program
+  .command("serve")
+  .description("Serve the dist/ directory locally")
+  .option("-p, --port <port>", "Port to serve on", "3000")
+  .action(serveCommand);
 
 const themeCmd = program
   .command("theme")

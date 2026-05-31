@@ -48,10 +48,15 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     startTime,
   });
 
-  // Build regular pages
+  // Build regular pages (skip drafts in production)
   for (const page of pages) {
     try {
       const pageData = parseContent(page);
+
+      // Skip draft pages in production build
+      if (pageData.frontMatter.draft === true) {
+        continue;
+      }
       const relativePath = relative(contentDir, page);
       const htmlPath = markdownToHtmlPath(relativePath);
 
@@ -150,6 +155,26 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     if (feed) {
       writeFileSync(join(outputDir, feed.filename), feed.content, "utf-8");
     }
+  }
+
+  // Generate 404 page if content/404.md exists
+  const notFoundPage = join(contentDir, "404.md");
+  if (existsSync(notFoundPage)) {
+    const notFoundData = parseContent(notFoundPage);
+    const notFoundHtml = engine.render(
+      (notFoundData.frontMatter.layout as string) || "base",
+      {
+        ...notFoundData.frontMatter,
+        title: "404 — Page Not Found",
+        content: notFoundData.htmlContent,
+        site: config.site,
+      }
+    );
+    writeFileSync(
+      join(outputDir, "404.html"),
+      config.build.minify ? minifyHtml(notFoundHtml) : notFoundHtml,
+      "utf-8"
+    );
   }
 
   const buildTime = Date.now() - startTime;
