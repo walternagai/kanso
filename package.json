@@ -1,0 +1,41 @@
+{
+  "name": "kanso",
+  "version": "0.1.0",
+  "description": "Build static sites with quiet speed.",
+  "type": "module",
+  "bin": {
+    "kanso": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "node --test src/**/*.test.ts",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "static-site-generator",
+    "cli",
+    "markdown",
+    "html",
+    "css",
+    "javascript"
+  ],
+  "author": "walternagai",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/walternagai/kanso.git"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "fs-extra": "^11.3.5"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
+  }
+}
