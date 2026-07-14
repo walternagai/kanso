@@ -39,13 +39,12 @@ export class PluginRunner {
   private loaded = false;
 
   createApi(): PluginApi {
-    const self = this;
     return {
-      on(hook: HookName, callback: (...args: unknown[]) => unknown) {
-        if (!self.hooks.has(hook)) {
-          self.hooks.set(hook, []);
+      on: (hook: HookName, callback: (...args: unknown[]) => unknown) => {
+        if (!this.hooks.has(hook)) {
+          this.hooks.set(hook, []);
         }
-        self.hooks.get(hook)!.push(callback);
+        this.hooks.get(hook)!.push(callback);
       },
     };
   }

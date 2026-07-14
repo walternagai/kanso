@@ -8,6 +8,7 @@ interface ServeOptions {
   port?: string;
 }
 
+/** @returns {void} — starts a long-running HTTP server */
 export function serveCommand(options: ServeOptions): void {
   const port = parseInt(options.port || "3000", 10);
   const outputDir = join(process.cwd(), "dist");
@@ -19,7 +20,22 @@ export function serveCommand(options: ServeOptions): void {
 
   heading("Kanso Serve");
 
-  const server = createServer((req, res) => {
+  const server = createServer(createHandler(outputDir));
+
+  server.listen(port, () => {
+    info(`Serving dist/ at http://localhost:${port}`);
+    console.log("");
+    info("Press Ctrl+C to stop.");
+  });
+
+  process.on("SIGINT", () => server.close());
+}
+
+/** Exported for testing — creates the HTTP request handler */
+export function createHandler(
+  outputDir: string
+): (req: IncomingMessage, res: ServerResponse) => void {
+  return (req, res) => {
     let urlPath = req.url || "/";
     if (urlPath === "/") urlPath = "/index.html";
 
@@ -46,11 +62,5 @@ export function serveCommand(options: ServeOptions): void {
         }
       }
     }
-  });
-
-  server.listen(port, () => {
-    console.log(`  Serving dist/ at http://localhost:${port}`);
-    console.log("");
-    info("Press Ctrl+C to stop.");
-  });
+  };
 }

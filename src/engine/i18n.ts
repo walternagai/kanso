@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "fs";
+import { existsSync } from "fs";
 import { join } from "path";
 
 export interface I18nConfig {

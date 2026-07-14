@@ -116,8 +116,8 @@ describe("kanso post", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
-      assert.ok(e.stderr.toString().includes("already exists"));
+    } catch (e: unknown) {
+      assert.ok((e as { stderr: Buffer }).stderr.toString().includes("already exists"));
     }
   });
 

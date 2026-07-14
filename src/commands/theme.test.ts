@@ -102,8 +102,8 @@ describe("Theme System", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
-      assert.ok(e.stderr.toString().includes("not found"));
+    } catch (e: unknown) {
+      assert.ok((e as { stderr: Buffer }).stderr.toString().includes("not found"));
     }
   });
 
@@ -133,8 +133,8 @@ describe("Theme System", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
-      assert.ok(e.stderr.toString().includes("not found"));
+    } catch (e: unknown) {
+      assert.ok((e as { stderr: Buffer }).stderr.toString().includes("not found"));
     }
   });
 
@@ -208,8 +208,8 @@ describe("Theme System", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
-      assert.ok(e.stderr.toString().includes("not found"));
+    } catch (e: unknown) {
+      assert.ok((e as { stderr: Buffer }).stderr.toString().includes("not found"));
     }
   });
 });

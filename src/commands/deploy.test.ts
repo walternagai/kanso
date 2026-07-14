@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "fs";
+import { mkdirSync, rmSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
 
@@ -31,10 +31,11 @@ describe("kanso deploy", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const err = e as { stderr: Buffer; stdout: Buffer };
       assert.ok(
-        e.stderr.toString().includes("not configured") ||
-          e.stdout.toString().includes("not configured")
+        err.stderr.toString().includes("not configured") ||
+          err.stdout.toString().includes("not configured")
       );
     }
   });
@@ -47,10 +48,11 @@ describe("kanso deploy", () => {
         env: { ...process.env, NETLIFY_AUTH_TOKEN: "" },
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const err = e as { stderr: Buffer; stdout: Buffer };
       assert.ok(
-        e.stderr.toString().includes("NETLIFY_AUTH_TOKEN") ||
-          e.stdout.toString().includes("NETLIFY_AUTH_TOKEN")
+        err.stderr.toString().includes("NETLIFY_AUTH_TOKEN") ||
+          err.stdout.toString().includes("NETLIFY_AUTH_TOKEN")
       );
     }
   });
@@ -62,10 +64,11 @@ describe("kanso deploy", () => {
         stdio: "pipe",
       });
       assert.fail("Should have thrown");
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const err = e as { stderr: Buffer; stdout: Buffer };
       assert.ok(
-        e.stderr.toString().includes("Unknown provider") ||
-          e.stdout.toString().includes("Unknown provider")
+        err.stderr.toString().includes("Unknown provider") ||
+          err.stdout.toString().includes("Unknown provider")
       );
     }
   });

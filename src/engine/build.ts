@@ -6,7 +6,7 @@ import { TemplateEngine } from "./template.js";
 import { copyAssets } from "./assets.js";
 import { generateSitemap } from "./seo.js";
 import { generateFeed } from "./feed.js";
-import { paginateCollection, readCollection, PaginationData } from "./pagination.js";
+import { paginateCollection, readCollection } from "./pagination.js";
 import { minifyHtml } from "./minify.js";
 import { generateRedirects, generateHeaders } from "./redirects.js";
 import { buildCollections } from "./collections.js";
@@ -253,7 +253,7 @@ async function buildPaginatedPage(
   contentDir: string,
   outputDir: string,
   config: Awaited<ReturnType<typeof loadConfig>>,
-  projectRoot: string
+  _projectRoot: string
 ): Promise<number> {
   const collectionName = paginationConfig.collection || "posts";
   const perPage =

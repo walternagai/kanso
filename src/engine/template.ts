@@ -32,7 +32,7 @@ function excerpt(value: unknown, maxLength: number = 140): string {
   if (!value) return "";
   const text = String(value)
     .replace(/<[^>]+>/g, "")
-    .replace(/[#*_`~\[\]]/g, "")
+    .replace(/[#*_`~[\]]/g, "")
     .trim();
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength).trim() + "...";

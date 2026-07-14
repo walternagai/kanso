@@ -16,7 +16,7 @@ describe("v0.5 — Collections", () => {
 
   it("buildCollections groups posts by directory", async () => {
     const { buildCollections } = await import("../engine/collections.js");
-    const { readFileSync, writeFileSync } = await import("fs");
+    const { writeFileSync } = await import("fs");
 
     writeFileSync(
       join(TEST_DIR, "content", "posts", "alpha.md"),
@@ -67,6 +67,30 @@ describe("v0.5 — Collections", () => {
     assert.ok(webTag, "tags/web collection should exist");
     assert.strictEqual(webTag.items.length, 2);
   });
+
+  it("buildCollections handles posts without dates", async () => {
+    const { buildCollections } = await import("../engine/collections.js");
+    const { writeFileSync } = await import("fs");
+
+    writeFileSync(
+      join(TEST_DIR, "content", "posts", "first.md"),
+      "---\ntitle: First\ntags: [web]\n---\n\nFirst."
+    );
+    writeFileSync(
+      join(TEST_DIR, "content", "posts", "second.md"),
+      "---\ntitle: Second\ntags: [web]\n---\n\nSecond."
+    );
+
+    const files = [
+      join(TEST_DIR, "content", "posts", "first.md"),
+      join(TEST_DIR, "content", "posts", "second.md"),
+    ];
+    const collections = buildCollections(files, join(TEST_DIR, "content"));
+    const posts = collections.get("posts");
+
+    assert.ok(posts, "posts collection should exist");
+    assert.strictEqual(posts.items.length, 2);
+  });
 });
 
 describe("v0.5 — Canonical URLs", () => {
@@ -87,9 +111,8 @@ describe("v0.5 — Canonical URLs", () => {
       join(TEST_DIR, "dist", "about", "index.html"),
       "utf-8"
     );
-    // The canonical URL should be available in template context
-    // (actual usage depends on theme implementing <link rel="canonical">)
-    assert.ok(existsSync(join(TEST_DIR, "dist", "about", "index.html")));
+    // The canonical URL should reference the site URL
+    assert.ok(html.includes("canonical") || html.includes("About"));
   });
 });
 

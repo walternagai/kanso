@@ -1,5 +1,5 @@
 import { execSync } from "child_process";
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { join } from "path";
 import { build } from "./build.js";
 import { heading, success, error, info } from "../utils/logger.js";
@@ -111,7 +111,7 @@ async function deployGitHubPages(
 
 async function deployNetlify(
   projectRoot: string,
-  config: DeployConfig
+  _config: DeployConfig
 ): Promise<void> {
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
@@ -138,7 +138,7 @@ async function deployNetlify(
 async function dryRun(
   projectRoot: string,
   provider: string,
-  config: DeployConfig
+  _config: DeployConfig
 ): Promise<void> {
   const outputDir = join(projectRoot, "dist");
 

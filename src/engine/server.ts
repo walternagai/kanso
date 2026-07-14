@@ -7,7 +7,7 @@ import { build } from "./build.js";
 import { heading, info, error } from "../utils/logger.js";
 import { MIME_TYPES } from "./mime.js";
 
-function getWsClientScript(port: number): string {
+function getWsClientScript(_port: number): string {
   return `
 <script>
 (function() {
@@ -122,8 +122,8 @@ export async function devServer(
   });
 
   server.listen(port, host, () => {
-    console.log(`  Local:   http://${host}:${port}`);
-    console.log(`  Network: http://0.0.0.0:${port}`);
+    info(`Local:   http://${host}:${port}`);
+    info(`Network: http://0.0.0.0:${port}`);
     console.log("");
     info("Watching for changes...");
   });

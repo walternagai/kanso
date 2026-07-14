@@ -1,8 +1,12 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { mkdirSync, writeFileSync, rmSync } from "fs";
 import { join } from "path";
-import { TemplateEngine } from "./template.js";
+import {
+  TemplateEngine,
+  getTemplateEngine,
+  resetTemplateEngine,
+} from "./template.js";
 
 const TEST_DIR = join(process.cwd(), ".test-template");
 
@@ -131,5 +135,144 @@ describe("TemplateEngine", () => {
       result,
       "<!DOCTYPE html><body><h1>My Page</h1></body>"
     );
+  });
+});
+
+describe("TemplateEngine — filters and utilities", () => {
+  const TEST_DIR_F = join(process.cwd(), ".test-template-filters");
+
+  beforeEach(() => {
+    rmSync(TEST_DIR_F, { recursive: true, force: true });
+    mkdirSync(join(TEST_DIR_F, "layouts"), { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(TEST_DIR_F, { recursive: true, force: true });
+  });
+
+  it("formatDate returns empty string for null value", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(join(TEST_DIR_F, "layouts/base.html"), "{{ dt | formatDate('YYYY') }}");
+    const result = engine.render("base", { dt: null });
+    assert.strictEqual(result, "");
+  });
+
+  it("formatDate returns original string for invalid date", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | formatDate('YYYY') }}"
+    );
+    const result = engine.render("base", { dt: "not-a-date" });
+    assert.strictEqual(result, "not-a-date");
+  });
+
+  it("excerpt strips HTML and truncates", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ content | excerpt }}"
+    );
+    const longText = "A".repeat(200);
+    const result = engine.render("base", { content: `<p>${longText}</p>` });
+    assert.ok(result.length <= 143); // 140 + "..."
+    assert.ok(result.endsWith("..."));
+  });
+
+  it("excerpt returns empty for null value", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(join(TEST_DIR_F, "layouts/base.html"), "{{ content | excerpt }}");
+    const result = engine.render("base", { content: null });
+    assert.strictEqual(result, "");
+  });
+
+  it("excerpt returns full text if under max length", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(join(TEST_DIR_F, "layouts/base.html"), "{{ content | excerpt }}");
+    const result = engine.render("base", { content: "Short text" });
+    assert.strictEqual(result, "Short text");
+  });
+
+  it("dateToISO returns ISO string", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | dateToISO }}"
+    );
+    const result = engine.render("base", { dt: "2026-07-13" });
+    assert.ok(result.startsWith("2026-07-13"));
+  });
+
+  it("dateToISO returns empty for null value", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(join(TEST_DIR_F, "layouts/base.html"), "{{ dt | dateToISO }}");
+    const result = engine.render("base", { dt: null });
+    assert.strictEqual(result, "");
+  });
+
+  it("dateToUTC returns UTC string", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | dateToUTC }}"
+    );
+    const result = engine.render("base", { dt: "2026-07-13" });
+    assert.ok(result.includes("2026"));
+    assert.ok(result.includes("Jul") || result.includes("July"));
+  });
+
+  it("dateToUTC returns empty string for null value", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(join(TEST_DIR_F, "layouts/base.html"), "{{ dt | dateToUTC }}");
+    const result = engine.render("base", { dt: null });
+    assert.strictEqual(result, "");
+  });
+
+  it("dateToUTC returns original string for invalid date", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | dateToUTC }}"
+    );
+    const result = engine.render("base", { dt: "not-a-date" });
+    assert.strictEqual(result, "not-a-date");
+  });
+
+  it("render accepts .html suffix directly", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ title }}"
+    );
+    const result = engine.render("base.html", { title: "Works" });
+    assert.strictEqual(result, "Works");
+  });
+});
+
+describe("getTemplateEngine / resetTemplateEngine", () => {
+  const TEST_DIR_G = join(process.cwd(), ".test-template-global");
+
+  beforeEach(() => {
+    rmSync(TEST_DIR_G, { recursive: true, force: true });
+    mkdirSync(join(TEST_DIR_G, "layouts"), { recursive: true });
+    writeFileSync(join(TEST_DIR_G, "layouts/base.html"), "{{ title }}");
+  });
+
+  afterEach(() => {
+    resetTemplateEngine();
+    rmSync(TEST_DIR_G, { recursive: true, force: true });
+  });
+
+  it("getTemplateEngine returns singleton", () => {
+    const a = getTemplateEngine(TEST_DIR_G);
+    const b = getTemplateEngine(TEST_DIR_G);
+    assert.strictEqual(a, b);
+  });
+
+  it("resetTemplateEngine clears singleton", () => {
+    const a = getTemplateEngine(TEST_DIR_G);
+    resetTemplateEngine();
+    const b = getTemplateEngine(TEST_DIR_G);
+    assert.notStrictEqual(a, b);
   });
 });

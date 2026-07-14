@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert";
-import { paginateCollection, PaginationData } from "./pagination.js";
+import { paginateCollection } from "./pagination.js";
 
 describe("Pagination", () => {
   function makeItems(count: number) {

@@ -28,7 +28,7 @@ export function generateSearchIndex(
 
     const plainText = content
       .replace(/<[^>]+>/g, "")
-      .replace(/[#*_`~\[\]]/g, "")
+      .replace(/[#*_`~[\]]/g, "")
       .trim();
 
     entries.push({

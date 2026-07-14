@@ -1,6 +1,10 @@
-import { describe, it } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
+import { mkdirSync, writeFileSync, rmSync } from "fs";
+import { join } from "path";
 import { PluginRunner, BuildContext, PageContext } from "./runner.js";
+
+const TEST_DIR = join(process.cwd(), ".test-plugin-runner");
 
 describe("PluginRunner", () => {
   it("creates an API with on() method", () => {
@@ -129,5 +133,45 @@ describe("PluginRunner", () => {
     } as BuildContext);
 
     assert.ok(!called);
+  });
+});
+
+describe("PluginRunner — loadPlugins", () => {
+  beforeEach(() => {
+    rmSync(TEST_DIR, { recursive: true, force: true });
+    mkdirSync(TEST_DIR, { recursive: true });
+  });
+
+  afterEach(() => {
+    rmSync(TEST_DIR, { recursive: true, force: true });
+  });
+
+  it("loadPlugins returns early when no config file exists", async () => {
+    const runner = new PluginRunner();
+    await runner.loadPlugins(TEST_DIR);
+    // Should not throw — early return at line 56-59
+    assert.ok(true);
+  });
+
+  it("loadPlugins returns early when config has no plugins", async () => {
+    writeFileSync(
+      join(TEST_DIR, "kanso.config.js"),
+      'export default { site: { title: "Test" } };'
+    );
+    const runner = new PluginRunner();
+    await runner.loadPlugins(TEST_DIR);
+    // Should not throw — no plugins regex match at lines 62-66
+    assert.ok(true);
+  });
+
+  it("loadPlugins skips non-existent plugins", async () => {
+    writeFileSync(
+      join(TEST_DIR, "kanso.config.js"),
+      'export default { plugins: ["nonexistent-plugin"] };'
+    );
+    const runner = new PluginRunner();
+    await runner.loadPlugins(TEST_DIR);
+    // Should not throw — plugin not found at line 85
+    assert.ok(true);
   });
 });

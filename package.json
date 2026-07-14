@@ -9,8 +9,11 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "node --test src/**/*.test.ts",
-    "lint": "tsc --noEmit"
+    "test": "tsc && node --test dist/**/*.test.js",
+    "coverage": "c8 --reporter=text --reporter=lcov npm test",
+    "lint": "tsc --noEmit && eslint src/",
+    "lint:tsc": "tsc --noEmit",
+    "lint:eslint": "eslint src/"
   },
   "keywords": [
     "static-site-generator",
@@ -40,11 +43,15 @@
     "ws": "^8.21.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/fs-extra": "^11.0.4",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^25.9.1",
     "@types/nunjucks": "^3.2.6",
     "@types/ws": "^8.18.1",
-    "typescript": "^6.0.3"
+    "c8": "^11.0.0",
+    "eslint": "^10.7.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.64.0"
   }
 }

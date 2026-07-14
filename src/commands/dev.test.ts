@@ -1,8 +1,8 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "fs";
+import { mkdirSync, rmSync } from "fs";
 import { join } from "path";
-import { execSync, spawn, ChildProcess } from "child_process";
+import { execSync, spawn } from "child_process";
 import http from "http";
 
 const TEST_DIR = join(process.cwd(), ".test-dev");

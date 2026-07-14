@@ -1,6 +1,6 @@
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "fs";
+import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { join } from "path";
 import { copyAssets, assetPath, formatBytes } from "./assets.js";
 
@@ -35,6 +35,7 @@ describe("Asset Pipeline", () => {
 
     assert.ok(existsSync(join(TEST_DIR, "dist", "favicon.ico")));
     assert.ok(existsSync(join(TEST_DIR, "dist", "robots.txt")));
+    assert.strictEqual(result.filesCopied, 2);
   });
 
   it("skips dotfiles by default", () => {

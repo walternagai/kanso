@@ -32,6 +32,35 @@ describe("v0.6 — i18n", () => {
     );
     assert.strictEqual(lang, "pt");
   });
+
+  it("getLangFromPath returns empty string when no language prefix", async () => {
+    const { getLangFromPath } = await import("../engine/i18n.js");
+    const lang = getLangFromPath(
+      join(TEST_DIR, "content", "sobre.md"),
+      join(TEST_DIR, "content")
+    );
+    assert.strictEqual(lang, "");
+  });
+
+  it("detectLanguages falls back to default when no language dirs exist", async () => {
+    const { detectLanguages } = await import("../engine/i18n.js");
+    const langs = detectLanguages(join(TEST_DIR, "empty"), {
+      enabled: true,
+      defaultLang: "pt",
+      languages: ["pt", "en"],
+    });
+    assert.deepStrictEqual(langs, ["pt"]);
+  });
+
+  it("detectLanguages returns default when i18n is disabled", async () => {
+    const { detectLanguages } = await import("../engine/i18n.js");
+    const langs = detectLanguages(join(TEST_DIR, "content"), {
+      enabled: false,
+      defaultLang: "en",
+      languages: ["pt", "en"],
+    });
+    assert.deepStrictEqual(langs, ["en"]);
+  });
 });
 
 describe("v0.7 — Search Index", () => {
@@ -57,6 +86,22 @@ describe("v0.7 — Search Index", () => {
     assert.strictEqual(index.length, 1);
     assert.strictEqual(index[0].title, "Hello");
     assert.ok(index[0].content.includes("Hello world"));
+  });
+
+  it("generateSearchIndex handles posts without title", async () => {
+    rmSync(TEST_DIR, { recursive: true, force: true });
+    mkdirSync(join(TEST_DIR, "content"), { recursive: true });
+    writeFileSync(
+      join(TEST_DIR, "content", "untitled.md"),
+      "---\n---\n\nNo title here."
+    );
+
+    const { generateSearchIndex } = await import("../engine/search.js");
+    const files = [join(TEST_DIR, "content", "untitled.md")];
+    const index = generateSearchIndex(files, join(TEST_DIR, "content"));
+
+    assert.strictEqual(index.length, 1);
+    assert.strictEqual(index[0].title, "");
   });
 });
 

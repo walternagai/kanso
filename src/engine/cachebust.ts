@@ -1,5 +1,5 @@
 import { createHash } from "crypto";
-import { readFileSync, writeFileSync, readdirSync, statSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { join, extname } from "path";
 
 export function addCacheBusting(outputDir: string): { files: number; hashes: Map<string, string> } {

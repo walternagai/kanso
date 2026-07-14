@@ -36,7 +36,7 @@ export function buildCollections(
 
     const excerpt = content
       .replace(/<[^>]+>/g, "")
-      .replace(/[#*_`~\[\]]/g, "")
+      .replace(/[#*_`~[\]]/g, "")
       .trim()
       .slice(0, 140);
 
