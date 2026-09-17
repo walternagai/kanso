@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync } from "fs";
 import { join } from "path";
-import { success, error, info, warn } from "../utils/logger.js";
+import { success, info, warn } from "../utils/logger.js";
 import { blogTheme } from "./blog.js";
 import { docsTheme } from "./docs.js";
 import { academicTheme } from "./academic.js";
@@ -8,6 +8,13 @@ import { researchGroupTheme } from "./research-group.js";
 import { ThemeManifest } from "./types.js";
 
 export type { ThemeManifest };
+
+export class ThemeError extends Error {
+  constructor(message: string, public readonly hints: string[] = []) {
+    super(message);
+    this.name = "ThemeError";
+  }
+}
 
 export function getBundledThemes(): Record<string, ThemeManifest> {
   return {
@@ -36,9 +43,9 @@ export function themeAdd(
   const theme = themes[themeName];
 
   if (!theme) {
-    error(`Theme "${themeName}" not found.`);
-    info(`Available themes: ${Object.keys(themes).join(", ")}`);
-    process.exit(1);
+    throw new ThemeError(`Theme "${themeName}" not found.`, [
+      `Available themes: ${Object.keys(themes).join(", ")}`,
+    ]);
   }
 
   const layoutsDir = join(projectRoot, "layouts");
@@ -80,9 +87,9 @@ export function themeRemove(
   const theme = themes[themeName];
 
   if (!theme) {
-    error(`Theme "${themeName}" not found.`);
-    info(`Available themes: ${Object.keys(themes).join(", ")}`);
-    process.exit(1);
+    throw new ThemeError(`Theme "${themeName}" not found.`, [
+      `Available themes: ${Object.keys(themes).join(", ")}`,
+    ]);
   }
 
   let removed = 0;
@@ -141,9 +148,9 @@ export function themeInfo(themeName: string): void {
   const theme = themes[themeName];
 
   if (!theme) {
-    error(`Theme "${themeName}" not found.`);
-    info(`Available themes: ${Object.keys(themes).join(", ")}`);
-    process.exit(1);
+    throw new ThemeError(`Theme "${themeName}" not found.`, [
+      `Available themes: ${Object.keys(themes).join(", ")}`,
+    ]);
   }
 
   console.log(`\n${theme.name} — ${theme.description}\n`);

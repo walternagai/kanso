@@ -1,0 +1,86 @@
+task: engine-arch-improvements
+status: approved
+domain: coding
+done: "(1) engine/ e themes/ não chamam process.exit — erros lançados como classes de erro tipadas, commands/ decidem exit; (2) dev server enfileira rebuild via needsRebuild durante isBuilding, com teste da sequência salvar-durante-build; (3) parseContent cacheado por filePath durante o build (coleção paginada não re-parseia) — npm run lint ✅, npm test 100% pass e benchmark antes/depois registrado no relatório"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: plan-first
+  reason: "Esforço alto: refactor de arquitetura (erros) + mudança de comportamento assíncrono (rebuild) + otimização de performance; alto benefício mas toca muitas superfícies — plano deve ser aprovado antes do code-loop"
+  answered: true
+  skipped: false
+think:
+  problem: "Três melhorias estruturais de engine: (1) process.exit(1) espalhado em deploy.ts:42,55,74,108,122,134 e themes/index.ts:41,85,146 — funções de biblioteca terminam o processo, testes já precisam stubar (theme.error.test.ts:11-25), sintoma de design; (2) dev server descarta evento durante build (server.ts:94-95 if (isBuilding) return) — segunda mudança de arquivo pode não gerar rebuild; (3) collectMarkdownFiles re-varre e re-parseia coleção paginada inteira (build.ts:262-265) — parse de Markdown com highlight.js roda 2x"
+  assumptions:
+    - "classes DeployError/ThemeError com message suficiente; commands/ fazem catch → error() → exit(1)"
+    - "mudar exit-handling é breaking para quem importa engine/ diretamente — projetod o repo sugere que só commands/ consomem"
+    - "cache de parse é por-build (Map local), não global — invalidação desnecessária em processo único"
+    - "needsRebuild: flag marcada no callback quando isBuilding, checada no finally para reagendar"
+  alternatives:
+    - "alt A: Result type (ok/err) em vez de exceptions — descartado: muda assinatura de toda a engine, custo alto para o ganho"
+    - "alt B: fila de eventos pendentes (array) — descartado: flag booleana needsRebuild é suficiente para semântica de 'algo mudou'"
+    - "alt C: cache global persistente de parse entre builds — descartado: especulativo, sem demanda; cache por build resolve o caso paginado"
+  unknowns: "Se algum teste depende de process.exit síncrono em engine — mapear com Grep 'process.exit' em src/engine e src/themes antes de migrar"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "DeployError/ThemeError com hints; cache de parse Map por build passado a readCollection; needsRebuild flag no dev server (implementada junto com reescrita do server.ts na Task 4)"
+  answered: true
+  skipped: false
+intent:
+  code_does: "engine/themes terminavam processo; dev descartava mudancas durante build; colecao paginada re-parseada"
+  check_expects: "theme.error.test.ts continua passando (commands agora capturam ThemeError); deploy.test.ts continua passando (DeployError -> error+hints)"
+  spec_says: "commands/ decidem exit code; engine lanca erros tipados"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/deploy.ts
+    - src/commands/deploy.ts
+    - src/themes/index.ts
+    - src/commands/theme.ts
+    - src/engine/build.ts
+    - src/engine/pagination.ts
+    - src/engine/server.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

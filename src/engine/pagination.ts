@@ -55,19 +55,26 @@ export function paginateCollection(
 
 export function readCollection(
   files: string[],
-  contentDir: string
+  contentDir: string,
+  parseCache?: Map<string, unknown>
 ): Array<{ frontMatter: Record<string, unknown>; slug: string; url: string }> {
   return files
     .map((file) => {
-      const raw = readFileSync(file, "utf-8");
-      const { data } = matter(raw);
+      let frontMatter: Record<string, unknown>;
+      if (parseCache?.has(file)) {
+        frontMatter = (parseCache.get(file) as { frontMatter: Record<string, unknown> }).frontMatter;
+      } else {
+        const raw = readFileSync(file, "utf-8");
+        const { data } = matter(raw);
+        frontMatter = data;
+      }
       const slug = file
         .replace(contentDir, "")
         .replace(/\.md$/, "")
         .replace(/\/index$/, "/")
         .replace(/^\//, "");
       return {
-        frontMatter: data,
+        frontMatter,
         slug,
         url: `/${slug}`,
       };

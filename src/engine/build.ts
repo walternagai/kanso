@@ -70,6 +70,7 @@ export async function build(
   const publishedPages: string[] = [];
   let pagesBuilt = 0;
   const errors: string[] = [];
+  const parseCache = new Map<string, PageData>();
 
   await pluginRunner.runHook("build:start", {
     projectRoot,
@@ -82,7 +83,11 @@ export async function build(
   for (const page of pages) {
     let templateNameRef = "unknown";
     try {
-      const pageData = parseContent(page);
+      let pageData = parseCache.get(page);
+      if (!pageData) {
+        pageData = parseContent(page);
+        parseCache.set(page, pageData);
+      }
 
       // Skip draft pages in production build
       if (pageData.frontMatter.draft === true) {
@@ -120,7 +125,8 @@ export async function build(
           contentDir,
           outputDir,
           config,
-          projectRoot
+          projectRoot,
+          parseCache
         );
         publishedPages.push(page);
         pagesBuilt += built;
@@ -287,7 +293,8 @@ async function buildPaginatedPage(
   contentDir: string,
   outputDir: string,
   config: Awaited<ReturnType<typeof loadConfig>>,
-  _projectRoot: string
+  _projectRoot: string,
+  parseCache?: Map<string, PageData>
 ): Promise<number> {
   const collectionName = paginationConfig.collection || "posts";
   const perPage =
@@ -296,7 +303,7 @@ async function buildPaginatedPage(
   // Collect all markdown files in the collection directory
   const collectionDir = join(contentDir, collectionName);
   const collectionFiles = collectMarkdownFiles(collectionDir);
-  const collection = readCollection(collectionFiles, collectionDir);
+  const collection = readCollection(collectionFiles, collectionDir, parseCache);
 
   // Make URLs relative to the paginated page's location
   const relativePath = relative(contentDir, pageData.filePath);
