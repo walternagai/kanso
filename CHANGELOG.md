@@ -2,6 +2,45 @@
 
 All notable changes to Kanso CLI will be documented in this file.
 
+## [1.1.0] - 2026-09-17
+
+### Added
+- `kanso page <title>` — create static pages in content/
+- `kanso list` — list pages and posts with dates and draft status
+- `kanso post --draft` — create draft posts from the CLI
+- `kanso build --verbose` — progress output every 50 pages
+- `kanso serve --host` — bind address like `kanso dev`
+- Scaffold home page (`layouts/home.html`) lists posts via `collections.posts`
+- Scaffold generates commented `kanso.config.js`, `README.md` and `.gitignore`
+- Scaffold `package.json` includes `serve` and `clean` scripts
+- Build summary reports skipped drafts ("N draft(s) skipped")
+- Build output includes page and template in render errors
+- `--verbose` flag on build; `--host` on serve; contextual next-step hints
+
+### Fixed
+- Security: block path traversal in serve and dev server handlers (403 on
+  requests resolving outside outputDir)
+- Security: GitHub Pages deploy uses `execFileSync` argument arrays instead
+  of shell string interpolation (prevents commit message injection)
+- Security: build refuses to delete output dir resolving to project root
+  or containing kanso.config.js
+- `loadConfig`/`loadDeployConfig` merge config by section so user keys no
+  longer silently drop nested defaults
+- `formatDate` replaces all token occurrences (was first-occurrence only)
+- Build with page errors now exits with code 1
+- Deploy validates provider before building (fail fast)
+- Init skips existing user files (kanso.config.js, package.json, content/)
+  even with --force; rejects project names with path traversal
+- MIME lookup lowercases extension (`.JPG` serves as image/jpeg)
+- Dev server queues rebuilds occurring during a build instead of dropping them
+- Paginated collections are no longer parsed twice per build
+
+### Changed
+- Engine and theme functions throw typed errors (`DeployError`, `ThemeError`)
+  instead of calling `process.exit`; commands decide exit codes
+- Shared HTTP handler (`engine/static-handler.ts`) and fs utilities
+  (`utils/fs.ts`) extracted from duplicated code
+
 ## [1.0.1] - 2026-05-31
 
 ### Fixed
