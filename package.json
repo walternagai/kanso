@@ -1,13 +1,21 @@
 {
-  "name": "kanso",
+  "name": "kanso-dev",
   "version": "1.1.0",
   "description": "Build static sites with quiet speed.",
   "type": "module",
   "bin": {
     "kanso": "./dist/cli.js"
   },
+  "files": [
+    "dist/",
+    "!dist/**/*test*",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
+    "prepublishOnly": "npm run lint && npm test && npm run build",
     "dev": "tsc --watch",
     "test": "tsc && node --test dist/**/*.test.js",
     "coverage": "node ./node_modules/c8/bin/c8.js --reporter=text --reporter=lcov npm test",
@@ -29,6 +37,10 @@
     "type": "git",
     "url": "git+https://github.com/walternagai/kanso.git"
   },
+  "bugs": {
+    "url": "https://github.com/walternagai/kanso/issues"
+  },
+  "homepage": "https://github.com/walternagai/kanso#readme",
   "engines": {
     "node": ">=18.0.0"
   },
