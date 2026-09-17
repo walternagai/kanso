@@ -247,6 +247,26 @@ describe("TemplateEngine — filters and utilities", () => {
     const result = engine.render("base.html", { title: "Works" });
     assert.strictEqual(result, "Works");
   });
+
+  it("formatDate replaces repeated tokens (regression: first-occurrence-only)", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | formatDate('MM/YYYY/MM') }}"
+    );
+    const result = engine.render("base", { dt: "2026-05-07" });
+    assert.strictEqual(result, "05/2026/05");
+  });
+
+  it("formatDate replaces all occurrences of each token", () => {
+    const engine = new TemplateEngine(TEST_DIR_F);
+    writeFileSync(
+      join(TEST_DIR_F, "layouts/base.html"),
+      "{{ dt | formatDate('YYYY/YYYY') }}"
+    );
+    const result = engine.render("base", { dt: "2026-05-07" });
+    assert.strictEqual(result, "2026/2026");
+  });
 });
 
 describe("getTemplateEngine / resetTemplateEngine", () => {

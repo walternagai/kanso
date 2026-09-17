@@ -1,0 +1,85 @@
+task: fix-config-merge-date
+status: approved
+domain: coding
+done: "loadConfig faz merge por seção preservando defaults aninhados (com teste cobrindo config parcial do usuário) e formatDate usa substituição segura com tokens delimitados (com teste de format contendo texto literal com letras de token) — npm run lint ✅ e npm test 100% pass"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Quick win: alto impacto (perda silenciosa de config do usuário + bug de data), esforço baixo, 2 arquivos + 2 testes"
+  answered: true
+  skipped: false
+think:
+  problem: "Dois bugs silenciosos de alta prioridade: (1) merge raso em loadConfig faz chaves aninhadas do usuário substituírem defaults inteiros (ex.: feed: {enabled: true} perde type/limit, gerando feed sem limite) — src/engine/build.ts:377-386 e src/engine/deploy.ts:192-193; (2) formatDate substitui tokens por substring em ordem fixa com replace de primeira ocorrência e sem escape — texto literal contendo letras de token (ex.: 'ss') é corrompido — src/engine/template.ts:15-27"
+  assumptions:
+    - "BuildResult/DeployConfig já tipados; merge profundo manual simples (2 níveis) suficiente, sem lib externa"
+    - "formatDate aceita formato com tokens YYYY MM DD HH mm ss; literals precisam sobreviver"
+    - "Testes de config existem e cobrem defaults; novos casos adicionados ao lado"
+  alternatives:
+    - "alt A: usar lib de deep-merge (lodash) — descartado: dependência nova para 2 níveis de profundidade"
+    - "alt B: merge manual por seção conhecida (feed, deploy, site...) — escolhido: explícito e tipado"
+    - "alt C: reescrever formatDate com Intl.DateTimeFormat — descartado: muda tokens aceitos, quebra compatibilidade"
+    - "alt D: formatDate com replaceAll e tokens delimitados por placeholder de 2 passes — escolhido: muda só a implementação interna"
+  unknowns: "Nenhum bloqueante; confirmar se algum tema depende do comportamento atual do merge raso (investigar com Grep por config.feed/config.deploy nos temas)"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "2 passes com placeholder U+0000 em formatDate; merge por seção explícito em loadConfig/loadDeployConfig; BuildResult.errors + exit(1) em commands/build.ts"
+  answered: true
+  skipped: false
+intent:
+  code_does: "formatDate substituía primeira ocorrência; loadConfig fazia merge raso; build ignorava erros de página no exit code"
+  check_expects: "testes novos: tokens repetidos substituídos todos; merge de seção parcial preserva defaults"
+  spec_says: "formatDate deve formatar datas com tokens; config do usuário deve sobrescrever só as chaves definidas"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/template.ts
+    - src/engine/build.ts
+    - src/engine/deploy.ts
+    - src/commands/build.ts
+    - src/engine/template.test.ts
+    - src/engine/config-merge.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

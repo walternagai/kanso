@@ -23,9 +23,9 @@ function formatDate(value: unknown, format: string): string {
 
   let result = format;
   for (const [token, val] of Object.entries(map)) {
-    result = result.replace(token, val);
+    result = result.replaceAll(token, "\u0000" + val + "\u0000");
   }
-  return result;
+  return result.replaceAll("\u0000", "");
 }
 
 function excerpt(value: unknown, maxLength: number = 140): string {
