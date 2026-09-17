@@ -1,7 +1,7 @@
 import { writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { success, error, info } from "../utils/logger.js";
-import { titleToSlug } from "../utils/slug.js";
+import { titleToSlug, yamlQuote } from "../utils/slug.js";
 
 interface PageOptions {
   layout?: string;
@@ -35,7 +35,7 @@ export function pageCommand(title: string, options: PageOptions): void {
   }
 
   const content = `---
-title: ${title}
+title: ${yamlQuote(title)}
 layout: ${layout}
 ---
 

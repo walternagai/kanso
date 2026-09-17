@@ -3,6 +3,12 @@ import assert from "node:assert";
 import { mkdirSync, rmSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
+const matter = require("gray-matter") as {
+  (input: string): { data: { title: string; description?: string } };
+};
 
 const TEST_DIR = join(process.cwd(), ".test-post");
 const CLI_PATH = join(process.cwd(), "dist", "cli.js");
@@ -27,7 +33,7 @@ describe("kanso post", () => {
       join(TEST_DIR, "content", "posts", "my-test-post.md"),
       "utf-8"
     );
-    assert.ok(content.includes("title: My Test Post"));
+    assert.ok(content.includes("title: \"My Test Post\""));
     assert.ok(content.includes("layout: post"));
     assert.ok(content.includes("date:"));
   });
@@ -66,7 +72,7 @@ describe("kanso post", () => {
       join(TEST_DIR, "content", "posts", "tagged-post.md"),
       "utf-8"
     );
-    assert.ok(content.includes("tags: [web, dev, kanso]"));
+    assert.ok(content.includes('tags: ["web", "dev", "kanso"]'));
   });
 
   it("accepts description", () => {
@@ -79,7 +85,7 @@ describe("kanso post", () => {
       join(TEST_DIR, "content", "posts", "described.md"),
       "utf-8"
     );
-    assert.ok(content.includes("description: A test post"));
+    assert.ok(content.includes('description: "A test post"'));
   });
 
   it("generates slug from title", () => {
@@ -131,5 +137,21 @@ describe("kanso post", () => {
     assert.ok(
       existsSync(join(TEST_DIR, "content", "posts", "new-dir.md"))
     );
+  });
+
+  it("escapes YAML-unsafe titles", () => {
+    execSync(
+      `node ${CLI_PATH} post "Colon: Title" --description "Say #tag"`,
+      { cwd: TEST_DIR }
+    );
+
+    const content = readFileSync(
+      join(TEST_DIR, "content/posts/colon-title.md"),
+      "utf-8"
+    );
+    assert.ok(content.includes('title: "Colon: Title"'));
+
+    const parsed = matter(content);
+    assert.strictEqual(parsed.data.title, "Colon: Title");
   });
 });

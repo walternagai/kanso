@@ -8,3 +8,8 @@ export function titleToSlug(title: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
+
+/** Quote a string as a safe YAML scalar (double-quoted style). */
+export function yamlQuote(value: string): string {
+  return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+}

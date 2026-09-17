@@ -19,7 +19,7 @@ describe("kanso page", () => {
     const filePath = join(TEST_DIR, "content", "about-me.md");
     assert.ok(existsSync(filePath));
     const content = readFileSync(filePath, "utf-8");
-    assert.ok(content.includes("title: About Me"));
+    assert.ok(content.includes("title: \"About Me\""));
     assert.ok(content.includes("layout: base"));
     assert.ok(!content.includes("date:"), "pages should not have date");
   });

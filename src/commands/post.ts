@@ -1,7 +1,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { success, error, info } from "../utils/logger.js";
-import { titleToSlug } from "../utils/slug.js";
+import { titleToSlug, yamlQuote } from "../utils/slug.js";
 
 interface PostOptions {
   date?: string;
@@ -41,14 +41,14 @@ export function postCommand(title: string, options: PostOptions): void {
     process.exit(1);
   }
 
-  const tagsLine = tags.length > 0 ? `\ntags: [${tags.join(", ")}]` : "";
+  const tagsLine = tags.length > 0 ? `\ntags: [${tags.map(yamlQuote).join(", ")}]` : "";
   const descLine = description
-    ? `\ndescription: ${description}`
+    ? `\ndescription: ${yamlQuote(description)}`
     : "";
   const draftLine = options.draft ? `\ndraft: true` : "";
 
   const content = `---
-title: ${title}
+title: ${yamlQuote(title)}
 date: ${date}
 layout: ${layout}${tagsLine}${descLine}${draftLine}
 ---
