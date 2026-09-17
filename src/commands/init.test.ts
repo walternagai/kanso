@@ -107,6 +107,19 @@ describe("kanso init", () => {
     );
     assert.ok(index.startsWith("---"));
     assert.ok(index.includes("title:"));
-    assert.ok(index.includes("layout:"));
+    assert.ok(index.includes("layout: home"));
+  });
+
+  it("generates home.html with posts listing loop", () => {
+    const projectDir = join(TEST_DIR, "home-test");
+    execSync(`node ${CLI_PATH} init home-test`, { cwd: TEST_DIR });
+
+    const home = readFileSync(
+      join(projectDir, "layouts/home.html"),
+      "utf-8"
+    );
+    assert.ok(home.includes('{% extends "base.html" %}'));
+    assert.ok(home.includes("collections.posts"));
+    assert.ok(home.includes("{{ post.url }}"));
   });
 });

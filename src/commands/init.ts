@@ -53,7 +53,7 @@ const TEMPLATES = {
 `,
   "content/index.md": `---
 title: Welcome
-layout: base
+layout: home
 ---
 
 # Welcome to My Site
@@ -85,7 +85,7 @@ It's simple, fast, and portable.
 <body>
   {% include "header.html" %}
   <main>
-    {{ content | safe }}
+    {% block content %}{{ content | safe }}{% endblock %}
   </main>
   {% include "footer.html" %}
 </body>
@@ -99,6 +99,26 @@ It's simple, fast, and portable.
   <time>{{ date }}</time>
   {{ content | safe }}
 </article>
+{% endblock %}
+`,
+  "layouts/home.html": `{% extends "base.html" %}
+
+{% block content %}
+{{ content | safe }}
+
+{% if collections.posts and collections.posts.length > 0 %}
+<section class="posts">
+  <h2>Posts</h2>
+  <ul>
+    {% for post in collections.posts %}
+    <li>
+      <a href="{{ post.url }}">{{ post.frontMatter.title }}</a>
+      {% if post.frontMatter.date %}<time>{{ post.frontMatter.date | formatDate('YYYY-MM-DD') }}</time>{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 {% endblock %}
 `,
   "components/header.html": `<header>
@@ -137,6 +157,22 @@ footer {
 }
 
 article time {
+  color: #666;
+}
+
+.posts ul {
+  list-style: none;
+  padding: 0;
+}
+
+.posts li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+}
+
+.posts time {
   color: #666;
 }
 `,

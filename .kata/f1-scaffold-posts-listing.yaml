@@ -1,0 +1,85 @@
+task: f1-scaffold-posts-listing
+status: approved
+domain: coding
+done: "index.md do scaffold usa layout home.html com loop sobre collections.posts — post criado via kanso post aparece na home após build sem edição manual; npm run lint ✅ e npm test 100% pass, com teste E2E (init -> post -> build -> dist/index.html contém o post)"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Corrige o gap crítico #1 da revisão beginners-ux-review; toca init.ts TEMPLATES + teste E2E"
+  answered: true
+  skipped: false
+think:
+  problem: "O scaffold gera content/index.md com layout base que não lista posts — o iniciante cria posts e nenhum aparece no site. Precisa: layout home.html (ou index.html) no scaffold com loop sobre collections.posts, e index.md apontando para ele. O engine já injeta collections em todas as páginas (build.ts:137-149, buildCollections em collections.ts) — só falta o template usar."
+  assumptions:
+    - "collections.posts está disponível como variável global em qualquer página não-paginada (confirmado em build.ts:137-149)"
+    - "CollectionItem tem frontMatter, slug, url, content, excerpt — suficiente para lista de posts"
+    - "home.html novo layout não conflita com base.html existente; index.md pode herdar de base ou ser standalone"
+    - "Testes existentes do init (init.test.ts) verificam arquivos criados — adicionar home.html à lista não os quebra se atualizados"
+  alternatives:
+    - "alt A: mudar base.html para listar posts — descartado: base é layout de todas as páginas; lista de posts não pertence a about/contact"
+    - "alt B: layout home.html novo com header/footer via include — escolhido: separa responsabilidades, home pode evoluir independente"
+    - "alt C: injectar posts direto no index.md via plugin — descartado: complexidade alta para ganho zero"
+    - "alt D: usar collections em index.md com layout base e conteúdo markdown cru com Nunjucks — descartado: markdown é renderizado antes, tags nunjucks não executam em .md"
+  unknowns: "Se markdownToHtmlPath trata index.md como index.html (confirmado: build.ts markdownToHtmlPath retorna index.html para index) — home.html precisa estar em layouts/ para FileSystemLoader encontrar"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "home.html extends base.html; base ganhou {% block content %}; date formatada com formatDate YYYY-MM-DD; css .posts minimo"
+  answered: true
+  skipped: false
+intent:
+  code_does: "index.md usava layout base sem listar nada; post.html extends base mas base nao tinha block (extends nao efetivo)"
+  check_expects: "E2E: init -> post -> build -> dist/index.html contem Hello World e Second Post com href /posts/"
+  spec_says: "collections.posts disponivel em paginas nao-paginadas (build.ts injeta)"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/init.ts
+    - src/commands/init.test.ts
+    - src/commands/posts-listing.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  pending_owed: true
+  pending_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "base.html do scaffold mudou para block-based; projetos existentes criados antes desta versao nao ganham posts listing automaticamente"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
