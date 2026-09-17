@@ -65,5 +65,5 @@ Write your post content here.
     info("Post created as draft — it will be skipped until draft: true is removed.");
   }
   console.log("");
-  info(`Edit the file and run kanso build to publish.`);
+  info(`Preview with kanso dev — build with kanso build to publish.`);
 }

@@ -272,6 +272,7 @@ export async function build(
 
   if (pagesBuilt > 0 && errors.length === 0) {
     success(`Build successful! Output in ${config.output.dir}/`);
+    info("Preview with kanso serve");
   } else if (pagesBuilt > 0 && errors.length > 0) {
     error(`Build completed with ${errors.length} error(s). Output in ${config.output.dir}/`);
   } else if (assetResult.filesCopied > 0) {

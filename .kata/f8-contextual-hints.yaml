@@ -1,0 +1,82 @@
+task: f8-contextual-hints
+status: approved
+domain: coding
+done: "(1) kanso post/page termina com hint 'Preview with kanso dev'; (2) build bem-sucedido termina com hint 'kanso serve' quando dist/ existe; (3) hints respeitam filosofia quiet speed (uma linha info, sem banner); npm run lint ✅ e npm test 100% pass"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Polish final da UX de iniciante; toca post.ts, page.ts (se F2 aplicado), build.ts — esforço baixo"
+  answered: true
+  skipped: false
+think:
+  problem: "Comandos terminam sem próximo passo contextual: post diz 'run kanso build' mas não menciona preview; build não diz como ver o resultado. O iniciante precisa adivinhar o fluxo."
+  assumptions:
+    - "post/page já mostram hint (Edit the file and run kanso build) — estender para incluir preview: 'Preview with kanso dev'"
+    - "build mostra hint serve apenas em build com páginas > 0 e sem errors — não poluir falhas"
+    - "hints são uma linha info() cada — sem banners, sem boxes"
+  alternatives:
+    - "alt A: hint em todos os comandos (clean, theme) — descartado: poluição; só onde há próximo passo natural"
+    - "alt B: flag --quiet para suprimir hints — descartado: especulação; hints já são discretos"
+    - "alt C: hint com URL absoluta do serve (http://localhost:3000) — descartado: port pode diferir; genérico é suficiente"
+  unknowns: "Se F2 (kanso page) já estiver implementada quando esta rodar — o hint deve cobrir page.ts também; caso contrário, registrar PENDING"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "hint de uma linha info em post/page (preview+build) e build bem-sucedido (serve); sem banners"
+  answered: true
+  skipped: false
+intent:
+  code_does: "post dizia apenas 'run kanso build'; build sem proximo passo"
+  check_expects: "post/page -> 'Preview with kanso dev'; build bem-sucedido -> 'Preview with kanso serve'"
+  spec_says: "filosofia quiet speed: hints discretos de uma linha"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/post.ts
+    - src/commands/page.ts
+    - src/engine/build.ts
+    - src/commands/hints.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
