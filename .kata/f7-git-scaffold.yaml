@@ -1,0 +1,80 @@
+task: f7-git-scaffold
+status: approved
+domain: coding
+done: "(1) scaffold gera .gitignore (dist/, node_modules/, .DS_Store); (2) package.json do projeto gerado inclui scripts serve e clean além de dev/build/deploy; (3) npm run lint ✅ e npm test 100% pass; git init explícito NÃO adicionado (decisão no implemento: manter scaffold sem git para não surpreender — registrar PENDING se usuário quiser)"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Resolve gaps #3 e #9; templates do init.ts — esforço baixo"
+  answered: true
+  skipped: false
+think:
+  problem: "Projeto gerado não tem .gitignore (dist/ e node_modules versionados por engano) e o package.json gerado não tem scripts serve/clean (só dev/build/deploy) nem referência ao kanso — o iniciante que seguir o README local não terá parity de comandos."
+  assumptions:
+    - ".gitignore é sempre criado (barato, sem downside); git init NÃO roda automaticamente (surpreendente e requer git instalado) — PENDING: considerar flag --git em follow-up"
+    - "scripts do package.json: manter kanso <cmd> direto (o usuário deve instalar kanso global ou usar npx; sem devDependencies para não acoplar versão do CLI ao projeto)"
+    - "adicionar 'serve': 'kanso serve' e 'clean': 'kanso clean' ao scaffold existente"
+  alternatives:
+    - "alt A: git init automático no scaffold — descartado: efeito colateral surpreendente; alguns usam outros VCS"
+    - "alt B: devDependency kanso + scripts npm run dev — descartado: acopla ciclo de versão do CLI ao projeto gerado; mudança maior de filosofia"
+    - "alt C: flag --git para opt-in git init — escolhido como PENDING para follow-up, não nesta task (escopo mínimo)"
+  unknowns: "Se theme add adiciona assets que devem entrar no .gitignore — não, temas vão para layouts/assets versionáveis"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: ".gitignore com node_modules/dist/.DS_Store/.env; scripts serve e clean adicionados; git init automatico NAO incluido"
+  answered: true
+  skipped: false
+intent:
+  code_does: "scaffold sem .gitignore; scripts npm incompletos"
+  check_expects: ".gitignore presente com dist/ e node_modules/; package.json com 5 scripts kanso"
+  spec_says: "sem git init automatico (surpreendente); scripts npm espelham CLI"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/init.ts
+    - src/commands/init-guards.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: false
+  auth_owed: false
+  auth_present: false
+  pending_owed: true
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "flag --git (opt-in git init no scaffold) considerada como follow-up; docs de usuario (README do repo kanso) devem mencionar .gitignore novo"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

@@ -53,9 +53,16 @@ export default {
   "scripts": {
     "dev": "kanso dev",
     "build": "kanso build",
+    "serve": "kanso serve",
+    "clean": "kanso clean",
     "deploy": "kanso deploy"
   }
 }
+`,
+  ".gitignore": `node_modules/
+dist/
+.DS_Store
+.env
 `,
   "content/index.md": `---
 title: Welcome

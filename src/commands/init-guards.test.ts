@@ -34,6 +34,24 @@ describe("init guards", () => {
     assert.ok(existsSync(join(projectDir, "layouts/base.html")));
   });
 
+  it("generates .gitignore and complete npm scripts", () => {
+    const projectDir = join(TEST_DIR, "git-test");
+    execSync(`node ${CLI_PATH} init git-test`, { cwd: TEST_DIR });
+
+    const gitignore = readFileSync(join(projectDir, ".gitignore"), "utf-8");
+    assert.ok(gitignore.includes("dist/"));
+    assert.ok(gitignore.includes("node_modules/"));
+
+    const pkg = JSON.parse(
+      readFileSync(join(projectDir, "package.json"), "utf-8")
+    );
+    assert.ok(pkg.scripts.serve === "kanso serve");
+    assert.ok(pkg.scripts.clean === "kanso clean");
+    assert.ok(pkg.scripts.dev === "kanso dev");
+    assert.ok(pkg.scripts.build === "kanso build");
+    assert.ok(pkg.scripts.deploy === "kanso deploy");
+  });
+
   it("skips user config even with --force", () => {
     const projectDir = join(TEST_DIR, "keep-test");
     mkdirSync(join(projectDir, "content"), { recursive: true });
