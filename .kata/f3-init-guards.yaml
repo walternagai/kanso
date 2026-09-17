@@ -1,0 +1,80 @@
+task: f3-init-guards
+status: approved
+domain: coding
+done: "(1) init em diretório com kanso.config.js existente pula arquivos do usuário com mensagem 'exists (kept)' em vez de sobrescrever; (2) --force sobrescreve apenas templates de layout/assets, nunca kanso.config.js/content já existentes; (3) project name com '/', '..', ou caminho absoluto é rejeitado com mensagem clara; (4) npm run lint ✅ e npm test 100% pass com testes dos 3 guardas"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Resolve gaps críticos #2 e #11 da revisão; init.ts + testes"
+  answered: true
+  skipped: false
+think:
+  problem: "init --force sobrescreve silenciosamente kanso.config.js e content/ de um projeto existente (scaffoldProject faz writeFileSync sem checar existsSync). E init aceita nomes com path traversal ('site/../evil' cria diretório fora do cwd). Ambos destroem trabalho do usuário sem aviso."
+  assumptions:
+    - "Comportamento desejado: sem --force em dir existente -> skip files existentes com info(); com --force -> sobrescrever apenas layouts/assets/components (regeneráveis), nunca kanso.config.js, package.json, content/ (dados do usuário)"
+    - "Validação de nome: rejeitar nomes contendo '/', '\\', '..' ou começando com '.'; permitir '.' apenas com --force (init . já usado em testes)"
+    - "Mudança de semântica do --force é breaking leve: hoje --force sobrescreve tudo; ninguém deve depender de perder config — documentar no commit"
+  alternatives:
+    - "alt A: prompt interativo 'overwrite kanso.config.js? [y/N]' — descartado: surpreendente em CI; comportamento estático previsível é melhor"
+    - "alt B: recusar init em diretório não-vazio mesmo com --force — descartado: quebra fluxo kanso init . em testes e uso legítimo"
+    - "alt C: categorizar templates em regeneráveis (layouts/assets) vs dados (config/content/package.json) e proteger só dados — escolhido: simples e cobre o risco real"
+  unknowns: "Se algum teste atual (init.test.ts, v0*.test.ts) depende de --force sobrescrevendo config — verificar antes de mudar"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "USER_FILES = kanso.config.js, package.json, content/ nunca sobrescritos; sem --force tudo existente e pulado; nome valida absolutos e traversal"
+  answered: true
+  skipped: false
+intent:
+  code_does: "scaffoldProject sobrescrevia tudo silenciosamente; nome sem validacao"
+  check_expects: "testes: config do usuario preservado com e sem --force; traversal e absoluto rejeitados (exit != 0, dir nao criado)"
+  spec_says: "--force regenera templates, nunca dados do usuario"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/init.ts
+    - src/commands/init-guards.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 2
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

@@ -181,11 +181,23 @@ article time {
   "public/.gitkeep": "",
 } as const;
 
-function scaffoldProject(targetDir: string, projectName: string): void {
+function scaffoldProject(targetDir: string, projectName: string, force: boolean): void {
   mkdirSync(targetDir, { recursive: true });
+
+  // User data files are never overwritten, even with --force
+  const USER_FILES = ["kanso.config.js", "package.json", "content/"];
 
   for (const [filePath, content] of Object.entries(TEMPLATES)) {
     const fullPath = join(targetDir, filePath);
+    const isUserData = USER_FILES.some((uf) => filePath.startsWith(uf));
+
+    if (existsSync(fullPath)) {
+      if (isUserData || !force) {
+        info(`${filePath} already exists (skipped)`);
+        continue;
+      }
+    }
+
     const dir = fullPath.substring(0, fullPath.lastIndexOf("/"));
 
     mkdirSync(dir, { recursive: true });
@@ -209,6 +221,19 @@ export async function initCommand(
     process.exit(1);
   }
 
+  const isDotName = projectName === ".";
+  const invalidChars = /[/\\]|\.\./;
+  if (projectName.startsWith("/") || projectName.includes(":")) {
+    error(`Invalid project name: "${projectName}"`);
+    info("Project name must be a relative path without absolute segments.");
+    process.exit(1);
+  }
+  if (!isDotName && invalidChars.test(projectName)) {
+    error(`Invalid project name: "${projectName}"`);
+    info("Project name must not contain path separators or '..'.");
+    process.exit(1);
+  }
+
   const targetDir = join(process.cwd(), projectName);
 
   if (existsSync(targetDir) && !options.force) {
@@ -217,7 +242,7 @@ export async function initCommand(
     process.exit(1);
   }
 
-  scaffoldProject(targetDir, projectName);
+  scaffoldProject(targetDir, projectName, !!options.force);
 
   console.log("");
   success(`Project created!`);
