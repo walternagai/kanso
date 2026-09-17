@@ -1,5 +1,10 @@
 # PRD — Kanso CLI
 
+> **Nota:** documento de especificação histórica (MVP). O estado atual do
+> produto está no [CHANGELOG](../CHANGELOG.md); comandos adicionais
+> (`kanso page`, `kanso list`), guardas de segurança e melhorias de UX
+> foram implementados após este PRD.
+
 **Nome do produto:** Kanso CLI
 **Pronúncia:** KAN-so
 **Significado:** `Kanso` é um princípio estético japonês associado à simplicidade, clareza e eliminação do excesso.

@@ -1,5 +1,8 @@
 # Product Requirements Prompts — Kanso CLI
 
+> **Nota:** documento de especificação histórica (MVP, 10 PRPs). O estado
+> atual do produto está no [CHANGELOG](../CHANGELOG.md).
+
 Este documento contém 10 PRPs (Product Requirements Prompts) derivados do PRD do Kanso CLI. Cada PRP é um prompt auto-contido otimizado para consumo por LLMs, cobrindo um módulo específico do sistema.
 
 ---
