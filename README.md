@@ -15,7 +15,7 @@ Kanso CLI is a modern, simple, and fast static site generator for HTML, CSS, Jav
 - [Commands](#commands)
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
-- [Markdown & Front Matter](#markdown--front matter)
+- [Markdown & Front Matter](#markdown--front-matter)
 - [Templates](#templates)
 - [Themes](#themes)
 - [Collections](#collections)
@@ -54,16 +54,19 @@ npm install -g kanso
 kanso init my-site
 cd my-site
 
-# Install a theme (optional)
-kanso theme add blog
+# Create content
+kanso post "My First Post"
+kanso page "About"
+kanso list                       # See what exists
 
-# Start development server
+# Start development server (hot reload)
 kanso dev
 
 # Build for production
 kanso build
 
 # Deploy
+kanso deploy --dry-run           # Preview first
 kanso deploy
 ```
 
@@ -75,6 +78,8 @@ kanso deploy
 |---------|-------------|
 | `kanso init <name>` | Create a new project |
 | `kanso post <title>` | Create a new blog post |
+| `kanso page <title>` | Create a new static page |
+| `kanso list` | List pages and posts |
 | `kanso dev` | Start dev server with hot reload |
 | `kanso build` | Build for production |
 | `kanso deploy` | Deploy to GitHub Pages or Netlify |
@@ -90,26 +95,26 @@ kanso deploy
 ```
 my-site/
   content/
-    index.md              # Home page
+    index.md              # Home page (uses layout: home)
     posts/
       hello-world.md      # Blog posts
+    about.md              # Static page (kanso page "About")
     404.md                # Custom 404 page (optional)
   layouts/
     base.html             # Base layout
+    home.html             # Home layout with posts listing
     post.html             # Post layout
-    page.html             # Page layout
   components/
     header.html           # Reusable header
     footer.html           # Reusable footer
   assets/
     css/style.css         # Stylesheets
     js/main.js            # JavaScript
-    images/               # Images
-  public/
-    favicon.ico           # Root-level files
-    robots.txt
-  kanso.config.js         # Configuration
+  public/                 # Root-level files copied to dist/
+  kanso.config.js         # Configuration (commented)
+  .gitignore
   package.json
+  README.md
 ```
 
 ---
@@ -249,7 +254,7 @@ Kanso uses [Nunjucks](https://mozilla.github.io/nunjucks/) for templating.
 {% if posts %}
   <ul>
     {% for post in posts %}
-      <li><a href="{{ post.url }}">{{ post.title }}</a></li>
+      <li><a href="{{ post.url }}">{{ post.frontMatter.title }}</a></li>
     {% endfor %}
   </ul>
 {% else %}
@@ -349,15 +354,15 @@ Group posts by directory or tag:
 <!-- List all posts -->
 {% for post in collections.posts %}
   <article>
-    <h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-    <time>{{ post.date }}</time>
+    <h2><a href="{{ post.url }}">{{ post.frontMatter.title }}</a></h2>
+    <time>{{ post.frontMatter.date | formatDate("YYYY-MM-DD") }}</time>
     <p>{{ post.excerpt }}</p>
   </article>
 {% endfor %}
 
 <!-- List posts by tag -->
 {% for post in collections["tags/web"] %}
-  <a href="{{ post.url }}">{{ post.title }}</a>
+  <a href="{{ post.url }}">{{ post.frontMatter.title }}</a>
 {% endfor %}
 ```
 
@@ -478,8 +483,9 @@ draft: true
 This page will not appear in `kanso build`.
 ```
 
-- Drafts are **excluded** from `kanso build`
-- Drafts are **visible** in `kanso dev`
+- Drafts are **excluded** from `kanso build` (the build summary
+  reports how many drafts were skipped)
+- Create drafts with `kanso post "My Post" --draft`
 
 ---
 
@@ -603,9 +609,8 @@ export default {
 Generate a client-side search index:
 
 ```js
-import { generateSearchIndex } from "kanso/search";
-
-const index = generateSearchIndex(files, contentDir);
+// Internal engine API — see src/engine/search.ts
+generateSearchIndex(files, contentDir);
 // Returns: [{ title, url, content, tags }]
 ```
 
@@ -701,7 +706,27 @@ kanso post "My First Post"
 kanso post "My Post" --tags "web, dev"
 kanso post "My Post" --date 2026-06-01
 kanso post "My Post" --description "A short description"
+kanso post "My Post" --draft        # Create as draft (skipped in builds)
 ```
+
+### `kanso page <title>`
+
+Create a new static page in `content/`.
+
+```bash
+kanso page "About"
+kanso page "Contact" --layout base
+```
+
+### `kanso list`
+
+List pages and posts in the current project.
+
+```bash
+kanso list                          # Pages + Posts with dates
+```
+
+Drafts are marked with `[draft]`.
 
 ### `kanso dev`
 
@@ -719,6 +744,7 @@ Build for production.
 
 ```bash
 kanso build                     # Build to dist/
+kanso build --verbose           # Show progress every 50 pages
 ```
 
 Output:
@@ -756,6 +782,7 @@ Serve the dist/ directory locally.
 ```bash
 kanso serve                     # Default: localhost:3000
 kanso serve --port 8080         # Custom port
+kanso serve --host 0.0.0.0      # Bind to all interfaces
 ```
 
 ### `kanso theme list`

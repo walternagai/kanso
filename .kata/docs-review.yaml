@@ -1,0 +1,77 @@
+task: docs-review
+status: approved
+domain: docs
+done: "Relatório de revisão documental entregue: cada doc (README.md, AGENTS.md, CHANGELOG.md, CONTRIBUTING.md, docs/prd-kanso-cli.md, docs/prps-kanso-cli.md) auditado contra o estado real do código (comandos, features F1-F8, estrutura, scripts npm), divergências priorizadas e plano de atualização acionável — nenhum doc alterado"
+base_commit: "917c48b8e25f727debda924d2afeffcdd84940e3"
+fit:
+  trivial: false
+  route: question
+  reason: "Revisão documental diagnóstica — audit + recomendações, sem alterar arquivos. Usuário confirmou: diagnóstico + plano."
+  answered: true
+  skipped: false
+think:
+  problem: "Os docs do repo foram escritos antes das rodadas recentes de features (F1-F8, melhorias de segurança/UX) e podem estar divergentes do comportamento real: comandos novos (page, list, post --draft), guardas do init, scripts npm do scaffold, CHANGELOG sem as versões recentes. O usuário de doc desatualizada é desviado."
+  assumptions:
+    - "Docs-alvo: README.md, AGENTS.md, CHANGELOG.md, CONTRIBUTING.md na raiz; docs/prd-kanso-cli.md e docs/prps-kanso-cli.md como spec"
+    - "Fonte de verdade = código + CLI executada; docs que discordam do código são divergência (ordem de autoridade: usuário > spec > código... aqui audit aponta conflito, não resolve)"
+    - "AGENTS.md descreve convenções para agentes IA — divergências nele afetam trabalho futuro"
+  alternatives:
+    - "alt A: audit apenas por leitura — descartado: comandos novos mudaram o output real; verificar contra CLI executada"
+    - "alt B: reescrever docs no mesmo ciclo — descartado: usuário pediu diagnóstico + plano"
+    - "alt C: audit por leitura + verificação de exemplos na CLI — escolhido"
+  unknowns: "Estado atual de cada doc (nunca lido nesta sessão); CHANGELOG existe mas versão do package.json é 1.0.0 desde antes das features"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  answered: true
+  skipped: false
+intent:
+  code_does: ""
+  check_expects: ""
+  spec_says: ""
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files: []
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: false
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
