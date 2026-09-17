@@ -65,6 +65,7 @@ program
   .option("-t, --tags <tags>", "Comma-separated tags")
   .option("-l, --layout <layout>", "Template layout", "post")
   .option("--description <desc>", "Post description for SEO")
+  .option("--draft", "Create as draft (skipped in builds)")
   .action(postCommand);
 
 program

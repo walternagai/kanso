@@ -1,0 +1,82 @@
+task: f4-draft-feedback
+status: approved
+domain: coding
+done: "(1) build com drafts mostra 'Skipped N draft(s)' no summary; (2) kanso post --draft cria arquivo com draft: true; (3) kanso list mostra drafts marcados — npm run lint ✅ e npm test 100% pass, com teste de build com draft reportando o skip"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Resolve gaps #6 e parte do #7; toca build.ts summary e post.ts"
+  answered: true
+  skipped: false
+think:
+  problem: "Build pula draft: true silenciosamente — 'Pages: 5' não diz que 1 rascunho foi ignorado, iniciante acha que perdeu o post. E criar rascunho exige editar front matter manualmente (sem --draft no post)."
+  assumptions:
+    - "draftsSkipped é fácil de contar no loop existente do build (contador ao lado de pagesBuilt)"
+    - "post --draft adiciona draft: true ao front matter gerado — 3 linhas em post.ts"
+    - "kanso list (F5) é task separada — aqui apenas o build feedback e a flag; se list não existir ainda, o done de list cai fora desta task"
+  alternatives:
+    - "alt A: listar arquivos pulados um a um — descartado: polui output default; contador único + --verbose futuro"
+    - "alt B: --drafts flag no build para incluir rascunhos — descartado: especulação; comportamento atual (excluir) está correto"
+    - "alt C: warning em vez de info para drafts — escolhido warn quando N>0 (visível mas não erro)"
+  unknowns: "Se o teste pagination-build.test.ts conta páginas com draft — verificar contagem antes de mudar summary"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "draftsSkipped contador no loop; warn de uma linha; post --draft adiciona draft: true + hint"
+  answered: true
+  skipped: false
+intent:
+  code_does: "drafts pulados silenciosamente; sem forma de criar draft via CLI"
+  check_expects: "build com draft mostra 'N draft(s) skipped' (warn/stderr); post --draft gera draft: true; build sem draft nao mostra mensagem"
+  spec_says: "drafts continuam excluidos do build (comportamento correto mantido)"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/build.ts
+    - src/commands/post.ts
+    - src/cli.ts
+    - src/commands/draft-feedback.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 2
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

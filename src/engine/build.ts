@@ -11,7 +11,7 @@ import { minifyHtml } from "./minify.js";
 import { generateRedirects, generateHeaders } from "./redirects.js";
 import { buildCollections } from "./collections.js";
 import { PluginRunner } from "../plugins/runner.js";
-import { heading, success, error, info, dim } from "../utils/logger.js";
+import { heading, success, error, info, dim, warn } from "../utils/logger.js";
 import { calculateDirSize, formatBytes } from "../utils/fs.js";
 
 export interface BuildResult {
@@ -69,6 +69,7 @@ export async function build(
   const collections = buildCollections(pages, contentDir);
   const publishedPages: string[] = [];
   let pagesBuilt = 0;
+  let draftsSkipped = 0;
   const errors: string[] = [];
   const parseCache = new Map<string, PageData>();
 
@@ -91,6 +92,7 @@ export async function build(
 
       // Skip draft pages in production build
       if (pageData.frontMatter.draft === true) {
+        draftsSkipped++;
         continue;
       }
       const relativePath = relative(contentDir, page);
@@ -255,6 +257,10 @@ export async function build(
   console.log(`  Time:      ${buildTime}ms`);
   console.log(`  Size:      ${formatBytes(totalSize)}`);
   console.log("");
+
+  if (draftsSkipped > 0) {
+    warn(`${draftsSkipped} draft(s) skipped`);
+  }
 
   if (errors.length > 0) {
     error(`${errors.length} page(s) failed:`);

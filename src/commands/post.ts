@@ -8,6 +8,7 @@ interface PostOptions {
   tags?: string;
   layout?: string;
   description?: string;
+  draft?: boolean;
 }
 
 export function postCommand(title: string, options: PostOptions): void {
@@ -44,11 +45,12 @@ export function postCommand(title: string, options: PostOptions): void {
   const descLine = description
     ? `\ndescription: ${description}`
     : "";
+  const draftLine = options.draft ? `\ndraft: true` : "";
 
   const content = `---
 title: ${title}
 date: ${date}
-layout: ${layout}${tagsLine}${descLine}
+layout: ${layout}${tagsLine}${descLine}${draftLine}
 ---
 
 # ${title}
@@ -59,6 +61,9 @@ Write your post content here.
   writeFileSync(filePath, content, "utf-8");
 
   success(`Post created: content/posts/${fileName}`);
+  if (options.draft) {
+    info("Post created as draft — it will be skipped until draft: true is removed.");
+  }
   console.log("");
   info(`Edit the file and run kanso build to publish.`);
 }
