@@ -1,5 +1,6 @@
 import { devServer } from "../engine/server.js";
 import { error } from "../utils/logger.js";
+import { parsePort } from "../utils/port.js";
 
 interface DevOptions {
   port?: string;
@@ -9,7 +10,7 @@ interface DevOptions {
 export async function devCommand(options: DevOptions): Promise<void> {
   try {
     await devServer(process.cwd(), {
-      port: options.port ? parseInt(options.port, 10) : 3000,
+      port: parsePort(options.port),
       host: options.host || "localhost",
     });
   } catch (e: unknown) {

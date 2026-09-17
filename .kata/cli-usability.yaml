@@ -1,0 +1,88 @@
+task: cli-usability
+status: approved
+domain: coding
+done: "(1) build/dev fora de projeto (sem kanso.config.js e sem content/) aborta com mensagem orientando kanso init; (2) --port inválido (NaN/fora de 1-65535) rejeitado com mensagem clara em dev e serve; (3) serve aceita --host; (4) erros de render incluem página e template no contexto; (5) deploy valida provider antes do build; (6) flag --verbose em build imprime progresso a cada 50 páginas — npm run lint ✅ e npm test 100% pass, com testes novos para validações"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Foco usabilidade da CLI: 6 melhorias de UX agrupadas, esforço médio, arquivos em commands/ e engine/"
+  answered: true
+  skipped: false
+think:
+  problem: "Usabilidade da CLI: (1) kanso build fora de projeto roda com defaults e cria dist/ vazio sem avisar (build.ts:30, 377-386); (2) --port sem validação — parseInt(NaN) → listen(NaN) com erro Node cru (dev.ts:12, serve.ts:13); (3) serve não aceita --host, hardcoded localhost (serve.ts:26) enquanto dev aceita; (4) erros de template Nunjucks não dizem qual página/template falhou (build.ts:149-151); (5) deploy valida provider só depois do build completo (deploy.ts:27-43, 52-55); (6) build grande fica sem output até o fim (build.ts:56-153)"
+  assumptions:
+    - "kanso.config.js na raiz (ou content/ existente) é marcador suficiente de 'está num projeto kanso'"
+    - "Commander suporta validação custom de opção (env: custom parsing em cli.ts)"
+    - "--verbose default false mantém filosofia 'quiet speed'; progresso só com verbose"
+    - "Mensagens seguem estilo atual do logger (error/warn/info de utils/logger.ts)"
+  alternatives:
+    - "alt A: validar port no engine/server.listen — descartado: tarde demais, erro cru do Node; validar no parse da CLI"
+    - "alt B: prompt interativo 'não parece um projeto kanso, inicializar?' — descartado: surpreendente em CI; abortar com orientação é previsível"
+    - "alt C: spinner de progresso — descartado: dependência visual; prints periódicos simples são suficientes"
+    - "alt D: fail-fast do provider antes do build — escolhido: mover validação para o topo de deploy()"
+  unknowns: "Se algum teste existente assume exit 0 de build com erros — verificar com Grep antes de mudar o exit code"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "parsePort em utils/port.ts reusado por dev e serve; guardas de projeto e provider fail-fast; verbose opcional default off"
+  answered: true
+  skipped: false
+intent:
+  code_does: "build rodava sem projeto; port aceitava NaN; serve sem host; erros sem template; provider validado tarde"
+  check_expects: "build fora de projeto -> throw com orientacao; parsePort invalido -> throw; deploy provider invalido -> erro antes do build"
+  spec_says: "CLI deve dar feedback claro e validar entradas antes de executar"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/build.ts
+    - src/commands/build.ts
+    - src/cli.ts
+    - src/commands/dev.ts
+    - src/commands/serve.ts
+    - src/engine/deploy.ts
+    - src/utils/port.ts
+    - src/utils/port.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

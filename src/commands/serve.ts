@@ -2,15 +2,25 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, existsSync, statSync } from "fs";
 import { join, extname, relative } from "path";
 import { heading, error, info } from "../utils/logger.js";
+import { parsePort } from "../utils/port.js";
 import { MIME_TYPES } from "../engine/mime.js";
 
 interface ServeOptions {
   port?: string;
+  host?: string;
 }
 
 /** @returns {void} — starts a long-running HTTP server */
 export function serveCommand(options: ServeOptions): void {
-  const port = parseInt(options.port || "3000", 10);
+  let port: number;
+  try {
+    port = parsePort(options.port);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    error(msg);
+    process.exit(1);
+  }
+  const host = options.host || "localhost";
   const outputDir = join(process.cwd(), "dist");
 
   if (!existsSync(outputDir)) {
@@ -22,8 +32,8 @@ export function serveCommand(options: ServeOptions): void {
 
   const server = createServer(createHandler(outputDir));
 
-  server.listen(port, () => {
-    info(`Serving dist/ at http://localhost:${port}`);
+  server.listen(port, host, () => {
+    info(`Serving dist/ at http://${host}:${port}`);
     console.log("");
     info("Press Ctrl+C to stop.");
   });

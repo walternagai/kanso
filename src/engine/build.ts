@@ -23,7 +23,10 @@ export interface BuildResult {
 
 const pluginRunner = new PluginRunner();
 
-export async function build(projectRoot: string): Promise<BuildResult> {
+export async function build(
+  projectRoot: string,
+  options: { verbose?: boolean } = {}
+): Promise<BuildResult> {
   const startTime = Date.now();
 
   await pluginRunner.loadPlugins(projectRoot);
@@ -31,6 +34,15 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   const config = await loadConfig(projectRoot);
   const contentDir = join(projectRoot, config.content.dir);
   const outputDir = join(projectRoot, config.output.dir);
+
+  const hasConfig = existsSync(join(projectRoot, "kanso.config.js"));
+  const hasContent = existsSync(contentDir);
+  if (!hasConfig && !hasContent) {
+    throw new Error(
+      "No kanso.config.js or content/ found in this directory. " +
+        "This does not look like a Kanso project. Run `kanso init <name>` first."
+    );
+  }
 
   await pluginRunner.runHook("config:loaded", config);
 
@@ -67,6 +79,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
 
   // Build regular pages (skip drafts in production)
   for (const page of pages) {
+    let templateNameRef = "unknown";
     try {
       const pageData = parseContent(page);
 
@@ -79,6 +92,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
 
       const templateName =
         (pageData.frontMatter.layout as string) || "base";
+      templateNameRef = templateName;
 
       // Check if this page has pagination config
       const paginationConfig = pageData.frontMatter.pagination as
@@ -158,10 +172,16 @@ export async function build(projectRoot: string): Promise<BuildResult> {
 
         publishedPages.push(page);
         pagesBuilt++;
+        if (options.verbose && pagesBuilt % 50 === 0) {
+          info(`Rendering ${pagesBuilt} pages...`);
+        }
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      errors.push(`${relative(projectRoot, page)}: ${msg}`);
+      const templateName = typeof templateNameRef !== "undefined" ? templateNameRef : "unknown";
+      errors.push(
+        `${relative(projectRoot, page)} (template: ${templateName}): ${msg}`
+      );
     }
   }
 

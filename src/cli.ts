@@ -26,6 +26,7 @@ try {
   pkg = JSON.parse(readFileSync(join(__dirname, "..", "package.json"), "utf-8"));
 } catch {
   pkg = { version: "0.0.0" };
+  console.warn("Could not read package.json; version unknown.");
 }
 
 const program = new Command();
@@ -53,7 +54,6 @@ program
   .command("init <project-name>")
   .description("Create a new Kanso project")
   .option("-f, --force", "Overwrite existing directory")
-  .option("-y, --yes", "Skip prompts and use defaults")
   .action(initCommand);
 
 program
@@ -75,6 +75,7 @@ program
 program
   .command("build")
   .description("Build the site for production")
+  .option("--verbose", "Show build progress")
   .action(buildCommand);
 
 program
@@ -94,6 +95,7 @@ program
   .command("serve")
   .description("Serve the dist/ directory locally")
   .option("-p, --port <port>", "Port to serve on", "3000")
+  .option("--host <host>", "Host to bind to", "localhost")
   .action(serveCommand);
 
 const themeCmd = program
