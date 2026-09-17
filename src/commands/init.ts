@@ -7,35 +7,41 @@ interface InitOptions {
 }
 
 const TEMPLATES = {
-  "kanso.config.js": `export default {
+  "kanso.config.js": `// Kanso configuration — edit values, keep the structure.
+// Docs: https://github.com/walternagai/kanso
+export default {
+  // Site metadata, used in templates and SEO files
   site: {
     title: "My Kanso Site",
-    url: "https://example.com",
+    url: "https://example.com", // canonical URL, used in sitemap/feed
     language: "en"
   },
+  // Where your Markdown content lives
   content: {
     dir: "content"
   },
+  // Build output directory (deleted on each build)
   output: {
     dir: "dist"
   },
   markdown: {
-    syntaxHighlight: true,
-    callouts: true
+    syntaxHighlight: true, // code blocks highlighted with highlight.js
+    callouts: true // > [!NOTE] style callouts
   },
   seo: {
-    sitemap: true,
-    robots: true
+    sitemap: true, // generate dist/sitemap.xml
+    robots: true // generate dist/robots.txt
   },
+  // RSS/Atom/JSON feed of your posts (content/posts/)
   feed: {
-    enabled: false,
-    type: "rss"
+    enabled: false, // set true to generate the feed
+    type: "rss" // "rss" | "atom" | "json"
   },
   pagination: {
-    perPage: 10
+    perPage: 10 // used with front matter "pagination: { collection: posts }"
   },
   deploy: {
-    provider: "github-pages"
+    provider: "github-pages" // "github-pages" | "netlify"
   }
 }
 `,
@@ -177,6 +183,46 @@ article time {
 }
 `,
   "assets/js/main.js": `// Kanso - your JavaScript here
+`,
+  "README.md": (name: string) => `# ${name}
+
+A static site built with [Kanso](https://github.com/walternagai/kanso).
+
+## Write
+
+- **Posts** live in \`content/posts/\` — create one with \`kanso post "My Post"\`
+  (or \`kanso post "My Post" --draft\` to keep it hidden until finished).
+- **Pages** live in \`content/\` — create one with \`kanso page "About"\`.
+- The home page lists your posts via \`layouts/home.html\`.
+
+## Preview
+
+\`\`\`
+kanso dev
+\`\`\`
+
+Hot-reloads at http://localhost:3000 while you edit content, layouts and assets.
+
+## Build
+
+\`\`\`
+kanso build
+\`\`\`
+
+Generates the final site in \`dist/\`. Run \`kanso serve\` to preview the built
+output, and \`kanso list\` to see all your pages and posts.
+
+## Deploy
+
+\`\`\`
+kanso deploy --dry-run   # preview what would be published
+kanso deploy             # publish (provider configured in kanso.config.js)
+\`\`\`
+
+## Configure
+
+Everything lives in \`kanso.config.js\` — site title/URL, feeds, SEO,
+pagination and the deploy provider. Each key is commented.
 `,
   "public/.gitkeep": "",
 } as const;

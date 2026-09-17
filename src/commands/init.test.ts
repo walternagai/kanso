@@ -122,4 +122,21 @@ describe("kanso init", () => {
     assert.ok(home.includes("collections.posts"));
     assert.ok(home.includes("{{ post.url }}"));
   });
+
+  it("generates commented config and README", () => {
+    const projectDir = join(TEST_DIR, "docs-test");
+    execSync(`node ${CLI_PATH} init docs-test`, { cwd: TEST_DIR });
+
+    const config = readFileSync(
+      join(projectDir, "kanso.config.js"),
+      "utf-8"
+    );
+    assert.ok(config.includes("//"), "config should have comments");
+    assert.ok(config.includes("feed"));
+
+    const readme = readFileSync(join(projectDir, "README.md"), "utf-8");
+    assert.ok(readme.includes("kanso dev"));
+    assert.ok(readme.includes("kanso build"));
+    assert.ok(readme.includes("kanso deploy"));
+  });
 });

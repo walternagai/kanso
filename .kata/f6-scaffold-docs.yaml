@@ -1,0 +1,80 @@
+task: f6-scaffold-docs
+status: approved
+domain: coding
+done: "(1) kanso.config.js do scaffold tem comentários explicando cada seção (site, content, output, markdown, seo, feed, pagination, deploy); (2) README.md gerado no projeto com jornada básica (escrever -> dev -> build -> deploy) e referência de comandos; npm run lint ✅ e npm test 100% pass (init.test.ts atualizado para os novos arquivos)"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Resolve gaps #8 e #10; só templates em init.ts — esforço baixo, impacto alto no primeiro contato"
+  answered: true
+  skipped: false
+think:
+  problem: "kanso.config.js gerado é JSON-like sem nenhuma explicação — o iniciante não sabe que feed/pagination/seo existem ou o que fazem. E não há README.md no projeto: a documentação da jornada morre no 'Next steps' do init."
+  assumptions:
+    - "Comentários JS no template do config não quebram o import (é .js export default) — confirmado que config é importado como módulo"
+    - "README curto (30-40 linhas): jornada + tabela de comandos + onde editar"
+    - "init.test.ts valida lista de arquivos criados — precisa adicionar README.md"
+  alternatives:
+    - "alt A: arquivo separado kanso.config.d.ts com types — descartado: overkill para iniciante"
+    - "alt B: link para docs online em vez de README local — descartado: offline-first; README local funciona sem internet"
+    - "alt C: comentar só as seções avançadas — escolhido: comentar todas com uma linha cada; barato e completo"
+  unknowns: "Nenhum"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "config: um comentario por chave; README com 4 secoes (write/preview/build/deploy) e nome do projeto interpolado"
+  answered: true
+  skipped: false
+intent:
+  code_does: "config sem explicacao; projeto sem README"
+  check_expects: "config gerado tem comentarios; README.md menciona dev/build/deploy/list"
+  spec_says: "config e JS module valido (comentarios nao quebram import)"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/init.ts
+    - src/commands/init.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
