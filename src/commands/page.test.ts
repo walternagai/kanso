@@ -1,19 +1,24 @@
-import { describe, it, beforeEach } from "node:test";
+import { describe, it, beforeEach, afterEach } from "node:test";
 import assert from "node:assert";
 import { mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const TEST_DIR = join(process.cwd(), ".test-page-cmd");
+const ORIGINAL_CWD = process.cwd();
 
 describe("kanso page", () => {
   beforeEach(() => {
     rmSync(TEST_DIR, { recursive: true, force: true });
     mkdirSync(join(TEST_DIR, "content"), { recursive: true });
+    process.chdir(TEST_DIR);
+  });
+
+  afterEach(() => {
+    process.chdir(ORIGINAL_CWD);
   });
 
   it("creates page in content/ with base layout", async () => {
     const { pageCommand } = await import("./page.js");
-    process.chdir(TEST_DIR);
     pageCommand("About Me", {});
 
     const filePath = join(TEST_DIR, "content", "about-me.md");
@@ -26,7 +31,6 @@ describe("kanso page", () => {
 
   it("rejects empty title", async () => {
     const { pageCommand } = await import("./page.js");
-    process.chdir(TEST_DIR);
     const origExit = process.exit;
     let exitCode: number | null = null;
     process.exit = ((code?: number) => {
@@ -44,7 +48,6 @@ describe("kanso page", () => {
 
   it("rejects existing page file", async () => {
     const { pageCommand } = await import("./page.js");
-    process.chdir(TEST_DIR);
     writeFileSync(join(TEST_DIR, "content", "about.md"), "existing");
     const origExit = process.exit;
     let exitCode: number | null = null;
