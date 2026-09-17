@@ -1,4 +1,4 @@
-import { execSync, execFileSync } from "child_process";
+import { execFileSync } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
 import { build, loadConfig } from "./build.js";
@@ -151,7 +151,7 @@ async function deployNetlify(
   }
 
   try {
-    execSync(`netlify deploy --prod --dir=${outputDir}`, {
+    execFileSync("netlify", ["deploy", "--prod", `--dir=${outputDir}`], {
       cwd: process.cwd(),
       stdio: "inherit",
     });

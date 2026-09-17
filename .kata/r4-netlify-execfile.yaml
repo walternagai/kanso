@@ -1,0 +1,77 @@
+task: r4-netlify-execfile
+status: approved
+domain: coding
+done: "clean valida projeto kanso, le output.dir do config, aplica guardas do build (projectRoot, kanso.config.js dentro de output); (customizado ou default dist) em deployGitHubPages, deployNetlify e dryRun; loadDeployConfig faz merge por seção; npm run lint ✅ e npm test 203/203 (com testes novos)
+base_commit: "c47af0afbc77d3fe870ed6f8f38613b7ca53e7d2"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Correção dos achados N4 do full-reaudit"
+  answered: true
+  skipped: false
+think:
+  problem: "netlify deploy usava execSync com string interpolada — padrao divergente e frágil a args dinâmicos futuros" join(projectRoot, 'dist') em 3 lugares, ignorando config.output.dir customizado; loadDeployConfig fazia merge raso próprio"
+  assumptions:
+    - "loadConfig do build (já exportado) é a fonte única de config; deploy o usa para output.dir"
+    - "dryRun passa a receber outputDir direto (assinatura simplificada)"
+  alternatives:
+    - "alt A: duplicar merge em loadDeployConfig — descartado: loadConfig já existe"
+    - "alt B: loadDeployConfig removido e DeployConfig extraído de loadConfig — escolhido parcialmente: loadDeployConfig simplificado com merge por seção (deploy-only), output.dir vem de loadConfig"
+  unknowns: "nenhum"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "loadConfig exportado do build; deploy recebe outputDir resolvido"
+  answered: true
+  skipped: false
+intent:
+  code_does: "deploy assumia dist/ fixo"
+  check_expects: "deploy.test.ts continua passando (dry-run mostra Output: dist/)"
+  spec_says: "output.dir do config é a fonte do diretório de build"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/deploy.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 98.63
+  coverage_pass: true
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
