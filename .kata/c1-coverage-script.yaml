@@ -1,0 +1,80 @@
+task: c1-coverage-script
+status: approved
+domain: coding
+done: "npm run coverage executa sem 'Exec format error' e imprime tabela TOTAL (c8 sobre npm test); correção persistente não depende de node_modules reinstall (script npm usa caminho direto ou shim regenerável documentado); npm run lint ✅ e npm test 204/204"
+base_commit: "db974281a45195e6cf4a1d748864f3762d1ea5aa"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Fix de tooling: shim de binário do npm quebrado (IntxLNK em vez de shell script); esforço baixo"
+  answered: true
+  skipped: false
+think:
+  problem: "npm run coverage falha com 'c8: Exec format error' — os shims em node_modules/.bin/* foram criados como links IntxLNK (formato não-POSIX, provavelmente extraído de um pnpm/zip em Windows) em vez de shell wrappers padrão do npm. O eslint e tsc funcionam porque npm exec resolve de outra forma, mas c8 dentro de script npm invoca o shim direto. Diagnóstico confirmado: ln -s manual do ../c8/bin/c8.js faz coverage funcionar (90.62% linhas)."
+  assumptions:
+    - "A correção local (symlink) é temporária — node_modules é regenerado por npm install, que pode recriar o shim quebrado"
+    - "Correção persistente: mudar o script coverage para usar node ./node_modules/c8/bin/c8.js em vez de depender do .bin (ou fixar npm config ignore-scripts / usar npx)"
+  alternatives:
+    - "alt A: trocar c8 por node --experimental-test-coverage — viável (Node 18+), removes dependência; coverage de linha apenas"
+    - "alt B: script usa caminho direto do binário do c8 — escolhido: mínimo, mantém c8 e lcov"
+    - "alt C: reinstalar node_modules — temporário, não resolve a causa (shim vem do ambiente)"
+  unknowns: "Se o CI (GitHub Actions, CHANGELOG menciona) roda coverage — se sim, o fix do script é essencial lá também"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "script usa caminho direto node ./node_modules/c8/bin/c8.js; symlink local do .bin corrigido como redundancia"
+  answered: true
+  skipped: false
+intent:
+  code_does: "npm run coverage falhava com Exec format error (shim .bin quebrado)"
+  check_expects: "npm run coverage imprime tabela All files (90.62%); sem 'Exec format error'"
+  spec_says: "script npm deve funcionar apos npm install em qualquer ambiente"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - package.json
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 90.62
+  coverage_pass: true
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  pending_owed: true
+  pending_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "node_modules/.bin shims quebrados (IntxLNK) vem do ambiente; npm install pode regenera-los — script por caminho direto imune"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
