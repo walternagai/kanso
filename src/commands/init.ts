@@ -4,7 +4,6 @@ import { success, error, heading, info } from "../utils/logger.js";
 
 interface InitOptions {
   force?: boolean;
-  yes?: boolean;
 }
 
 const TEMPLATES = {

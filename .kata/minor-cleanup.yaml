@@ -1,0 +1,79 @@
+task: minor-cleanup
+status: approved
+domain: coding
+done: "(1) catch de package.json em cli.ts emite warn com causa em vez de fallback silencioso para 0.0.0; (2) flag --yes de init ou implementada (respeitada por prompts) ou removida do --help — npm run lint ✅ e npm test 100% pass"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Esforço baixo, impacto baixo; limpeza de pontas soltas da análise"
+  answered: true
+  skipped: false
+think:
+  problem: "Pontas soltas: (1) src/cli.ts:24-29 — catch vazio no load de package.json reporta --version 0.0.0 sem avisar que a instalação está quebrada; (2) -y, --yes anunciado no --help do init ('Skip prompts and use defaults') mas InitOptions.yes nunca é lido (cli.ts:56, init.ts:5-8) — flag fantasma"
+  assumptions:
+    - "init hoje não tem prompts, então --yes pode ser removido sem quebrar fluxo algum; alternativa é adicionar prompt de título do site"
+    - "warn não deve poluir output normal — só no caso de falha real de leitura"
+  alternatives:
+    - "alt A: remover --yes até existirem prompts — escolhido: honesto no --help, sem código morto"
+    - "alt B: implementar prompts agora respeitando --yes — adia: escopo maior, merece task própria se o usuário quiser"
+    - "alt C: usar createRequire/import.meta para version em vez de try/catch — descartado: muda mecanismo de resolução em runtime do CLI compilado"
+  unknowns: "Se algum script/CI depende de --yes existir — verificar com Grep por '--yes' em docs/ e scripts"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "console.warn no fallback de versao; --yes removido do cli.ts e de InitOptions (init nao tem prompts hoje)"
+  answered: true
+  skipped: false
+intent:
+  code_does: "catch vazio silenciava falha de package.json; --yes anunciada mas ignorada"
+  check_expects: "init.test.ts continua passando sem --yes; flag fantasma removida"
+  spec_says: "--help deve listar apenas opcoes funcionais"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/cli.ts
+    - src/commands/init.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "docs/prps-kanso-cli.md:98 ainda menciona --yes no spec do CLI; atualizar doc em follow-up"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
