@@ -1,0 +1,75 @@
+task: analise-codebase
+status: think-complete
+domain: coding
+done: "relatório de achados priorizados entregue, sem alteração de código"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+approved_commit: ""
+fit:
+  trivial: false
+  route: question
+  reason: "Tarefa de análise/diagnóstico do codebase completo — não altera código; resposta vive em achados + recomendações"
+  answered: true
+  skipped: false
+think:
+  problem: "Auditar o codebase Kanso (TS/Node) completo para identificar melhorias de qualidade de código e de usabilidade da CLI, sem alterar código"
+  assumptions: "AGENTS.md reflete a stack real; testes/lint rodam localmente; escopo = src/ completo (cli, commands, engine, plugins, themes, utils)"
+  alternatives: "auditar só arquivos alterados recentemente; usar apenas lint estático; análise manual completa com greps dirigidos"
+  unknowns: "estado atual de lint/testes; existência de .kata/config.yaml; padrões de erro espalhados pelos 57 arquivos"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "N/A — rota question, nenhum código será alterado"
+  answered: true
+  skipped: false
+intent:
+  code_does: ""
+  check_expects: ""
+  spec_says: ""
+  all_agree: true
+  conflict_resolution: ""
+  answered: true
+  skipped: false
+surgical:
+  files: []
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+  notes: "npm run lint exit 0; npm test 165 pass / 0 fail; relatorio entregue sem alteracao de codigo"
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: false
+  intent_present: true
+  auth_owed: false
+  auth_present: true
+  pending_owed: false
+  pending_present: true
+  twins_owed: false
+  twins_present: true
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "aplicar melhorias priorizadas do relatório"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
