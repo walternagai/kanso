@@ -65,8 +65,8 @@ auth:
   action: ""
   quote: ""
 pending:
-  action: ""
-  documented: false
+  action: "Plano executado em 5 commits (f928908 README, 0c37e11 CHANGELOG+bump, 1ff4a71 AGENTS, 846c224 CONTRIBUTING, 122b9f8 PRD/PRPS); claim de tema dark/light verificado como correta"
+  documented: true
 twins:
   pattern: ""
   result: ""
