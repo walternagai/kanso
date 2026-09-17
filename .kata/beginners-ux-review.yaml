@@ -1,0 +1,80 @@
+task: beginners-ux-review
+status: approved
+domain: coding
+done: "Diagnóstico da experiência de usuários iniciantes entregue: jornada onboarding->post->build->deploy auditada executando a CLI real em diretório temporário, gaps priorizados (impacto no primeiro uso) e plano de features acionável com escopo/effort por item — nenhum código alterado"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: question
+  reason: "Tarefa de diagnóstico/revisão — investigar e recomendar, não alterar código. Usuário confirmou: diagnóstico + plano."
+  answered: true
+  skipped: false
+think:
+  problem: "Usuários iniciantes do Kanso enfrentam a CLI sem um caminho guiado: audit a jornada completa do primeiro uso (init, post, pages, build, dev, temas, deploy) e identificar onde a experiência trava, confunde ou exige conhecimento implícito — depois propor features concretas de criação/gerenciamento que reduzem atrito"
+  assumptions:
+    - "Persona: dev iniciante que nunca usou SSG ou conhece apenas superficialmente; usa npx/npm; quer um blog ou site simples rápido"
+    - "A CLI atual (init, post, build, dev, serve, theme, deploy, clean) é a superfície completa; plugins são avançados"
+    - "Filosofia 'quiet speed' do projeto deve ser respeitada: feedback claro sem poluir output"
+    - "Recomendações devem ser acionáveis como tasks kata futuras, com escopo delimitado"
+  alternatives:
+    - "alt A: audit apenas por leitura de código — descartado: UX real só aparece executando a CLI em sandbox e observando output"
+    - "alt B: survey com usuários reais — descartado: fora de escopo, sem acesso a usuários"
+    - "alt C: executar jornada E2E real em sandbox + leitura de código — escolhido: evidência observável + contexto de implementação"
+    - "alt D: comparar com Eleventy/Astro/Hugo onboarding — parcialmente: usar como referência de boas práticas, não audit completo"
+  unknowns: "Como o init realmente se comporta hoje (arquivos gerados, mensagens); se post gera estrutura completa; se dev server dá next-steps ao primeiro usuário; o que o help text comunica vs o que falta"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "Audit por observacao E2E em sandbox + leitura de codigo; nenhum diff de codigo, SIMPLIFY nao aplicavel"
+  answered: true
+  skipped: false
+intent:
+  code_does: ""
+  check_expects: ""
+  spec_says: ""
+  all_agree: true
+  answered: false
+  skipped: false
+surgical:
+  files: []
+  removed_imports_clean: true
+  answered: false
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: false
+  intent_present: false
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
