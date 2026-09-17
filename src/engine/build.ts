@@ -1,4 +1,4 @@
-import { readdirSync, mkdirSync, writeFileSync, existsSync, rmSync, statSync, readFileSync } from "fs";
+import { readdirSync, mkdirSync, writeFileSync, existsSync, rmSync, readFileSync } from "fs";
 import { join, relative, dirname } from "path";
 import matter from "gray-matter";
 import { parseContent, PageData } from "./content.js";
@@ -12,6 +12,7 @@ import { generateRedirects, generateHeaders } from "./redirects.js";
 import { buildCollections } from "./collections.js";
 import { PluginRunner } from "../plugins/runner.js";
 import { heading, success, error, info, dim } from "../utils/logger.js";
+import { calculateDirSize, formatBytes } from "../utils/fs.js";
 
 export interface BuildResult {
   pages: number;
@@ -29,9 +30,9 @@ export async function build(
 ): Promise<BuildResult> {
   const startTime = Date.now();
 
-  await pluginRunner.loadPlugins(projectRoot);
-
   const config = await loadConfig(projectRoot);
+
+  await pluginRunner.loadPlugins(projectRoot, config.plugins);
   const contentDir = join(projectRoot, config.content.dir);
   const outputDir = join(projectRoot, config.output.dir);
 
@@ -429,26 +430,4 @@ async function loadConfig(projectRoot: string) {
     };
   }
   return defaultConfig;
-}
-
-function calculateDirSize(dir: string): number {
-  let total = 0;
-  if (!existsSync(dir)) return total;
-  const entries = readdirSync(dir, { withFileTypes: true });
-  for (const entry of entries) {
-    const fullPath = join(dir, entry.name);
-    if (entry.isDirectory()) {
-      total += calculateDirSize(fullPath);
-    } else {
-      total += statSync(fullPath).size;
-    }
-  }
-  return total;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  const i = Math.floor(Math.log(bytes) / Math.log(1024));
-  return `${(bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }

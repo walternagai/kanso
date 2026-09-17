@@ -1,9 +1,9 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, statSync } from "fs";
-import { join, extname, relative } from "path";
+import { existsSync } from "fs";
+import { join } from "path";
 import { heading, error, info } from "../utils/logger.js";
 import { parsePort } from "../utils/port.js";
-import { MIME_TYPES } from "../engine/mime.js";
+import { createStaticHandler } from "../engine/static-handler.js";
 
 interface ServeOptions {
   port?: string;
@@ -45,38 +45,5 @@ export function serveCommand(options: ServeOptions): void {
 export function createHandler(
   outputDir: string
 ): (req: IncomingMessage, res: ServerResponse) => void {
-  return (req, res) => {
-    let urlPath = req.url || "/";
-    if (urlPath === "/") urlPath = "/index.html";
-
-    const filePath = join(outputDir, urlPath);
-
-    if (relative(outputDir, filePath).startsWith("..")) {
-      res.writeHead(403, { "Content-Type": "text/plain" });
-      res.end("403 Forbidden");
-      return;
-    }
-
-    if (existsSync(filePath) && statSync(filePath).isFile()) {
-      const ext = extname(filePath);
-      const contentType = MIME_TYPES[ext] || "application/octet-stream";
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(readFileSync(filePath));
-    } else {
-      const indexPath = join(outputDir, urlPath, "index.html");
-      if (existsSync(indexPath)) {
-        res.writeHead(200, { "Content-Type": "text/html" });
-        res.end(readFileSync(indexPath));
-      } else {
-        const notFound = join(outputDir, "404.html");
-        if (existsSync(notFound)) {
-          res.writeHead(404, { "Content-Type": "text/html" });
-          res.end(readFileSync(notFound));
-        } else {
-          res.writeHead(404, { "Content-Type": "text/html" });
-          res.end("<h1>404 Not Found</h1>");
-        }
-      }
-    }
-  };
+  return createStaticHandler(outputDir);
 }

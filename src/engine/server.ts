@@ -1,44 +1,10 @@
-import { createServer, IncomingMessage, ServerResponse } from "http";
-import { readFileSync, existsSync, statSync } from "fs";
-import { join, extname, relative } from "path";
+import { createServer } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import chokidar from "chokidar";
+import { join, extname, relative } from "path";
 import { build } from "./build.js";
 import { heading, info, error } from "../utils/logger.js";
-import { MIME_TYPES } from "./mime.js";
-
-function getWsClientScript(_port: number): string {
-  return `
-<script>
-(function() {
-  var ws = new WebSocket('ws://' + location.host + '/__kanso_ws');
-  ws.onmessage = function(e) {
-    var data = JSON.parse(e.data);
-    if (data.type === 'reload') {
-      location.reload();
-    } else if (data.type === 'css') {
-      var links = document.querySelectorAll('link[rel="stylesheet"]');
-      links.forEach(function(link) {
-        link.href = link.href.split('?')[0] + '?t=' + Date.now();
-      });
-    } else if (data.type === 'error') {
-      var overlay = document.getElementById('__kanso_error');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = '__kanso_error';
-        overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fee;color:#c00;padding:16px;font-family:monospace;z-index:99999;white-space:pre-wrap;border-bottom:2px solid #c00';
-        document.body.appendChild(overlay);
-      }
-      overlay.textContent = data.message;
-    }
-  };
-  ws.onclose = function() {
-    setTimeout(function() { location.reload(); }, 1000);
-  };
-})();
-</script>
-`;
-}
+import { createStaticHandler } from "./static-handler.js";
 
 export interface DevServerOptions {
   port?: number;
@@ -58,9 +24,12 @@ export async function devServer(
 
   const outputDir = join(projectRoot, "dist");
 
-  const server = createServer((req, res) => {
-    handleRequest(req, res, outputDir, port);
-  });
+  const server = createServer(
+    createStaticHandler(outputDir, {
+      injectLiveReload: true,
+      wsPort: port,
+    })
+  );
 
   const wss = new WebSocketServer({ server, path: "/__kanso_ws" });
   const clients = new Set<WebSocket>();
@@ -90,9 +59,13 @@ export async function devServer(
 
   let rebuildTimer: ReturnType<typeof setTimeout> | null = null;
   let isBuilding = false;
+  let needsRebuild = false;
 
   watcher.on("all", (event, filePath) => {
-    if (isBuilding) return;
+    if (isBuilding) {
+      needsRebuild = true;
+      return;
+    }
 
     const ext = extname(filePath);
     const isCssChange = ext === ".css";
@@ -117,6 +90,20 @@ export async function devServer(
         error(`Build error: ${msg}`);
       } finally {
         isBuilding = false;
+        if (needsRebuild) {
+          needsRebuild = false;
+          const t = setTimeout(async () => {
+            try {
+              await build(projectRoot);
+              broadcast({ type: "reload" });
+              info("Rebuilt pending changes");
+            } catch (e: unknown) {
+              const msg = e instanceof Error ? e.message : String(e);
+              broadcast({ type: "error", message: msg });
+            }
+          }, 300);
+          void t;
+        }
       }
     }, 300);
   });
@@ -133,57 +120,4 @@ export async function devServer(
     server.close();
     process.exit(0);
   });
-}
-
-function handleRequest(
-  req: IncomingMessage,
-  res: ServerResponse,
-  outputDir: string,
-  port: number
-): void {
-  let urlPath = req.url || "/";
-  if (urlPath === "/") urlPath = "/index.html";
-
-  const filePath = join(outputDir, urlPath);
-
-  if (relative(outputDir, filePath).startsWith("..")) {
-    res.writeHead(403, { "Content-Type": "text/plain" });
-    res.end("403 Forbidden");
-    return;
-  }
-
-  if (existsSync(filePath) && statSync(filePath).isFile()) {
-    const ext = extname(filePath);
-    const contentType = MIME_TYPES[ext] || "application/octet-stream";
-    const content = readFileSync(filePath);
-
-    if (ext === ".html") {
-      let html = content.toString();
-      html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(html);
-    } else {
-      res.writeHead(200, { "Content-Type": contentType });
-      res.end(content);
-    }
-  } else {
-    const indexPath = join(outputDir, urlPath, "index.html");
-    if (existsSync(indexPath)) {
-      let html = readFileSync(indexPath, "utf-8");
-      html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(html);
-    } else {
-      const notFound = join(outputDir, "404.html");
-      if (existsSync(notFound)) {
-        let html = readFileSync(notFound, "utf-8");
-        html = html.replace("</body>", `${getWsClientScript(port)}</body>`);
-        res.writeHead(404, { "Content-Type": "text/html" });
-        res.end(html);
-      } else {
-        res.writeHead(404, { "Content-Type": "text/html" });
-        res.end("<h1>404 Not Found</h1>");
-      }
-    }
-  }
 }

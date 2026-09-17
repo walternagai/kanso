@@ -3,6 +3,7 @@ import { existsSync } from "fs";
 import { join } from "path";
 import { build } from "./build.js";
 import { heading, success, error, info } from "../utils/logger.js";
+import { countFilesInDir, formatBytes } from "../utils/fs.js";
 
 export interface DeployOptions {
   dryRun?: boolean;
@@ -16,6 +17,13 @@ export interface DeployConfig {
   branch?: string;
   siteId?: string;
   buildBeforeDeploy?: boolean;
+}
+
+export class DeployError extends Error {
+  constructor(message: string, public readonly hints: string[] = []) {
+    super(message);
+    this.name = "DeployError";
+  }
 }
 
 export async function deploy(
@@ -32,9 +40,9 @@ export async function deploy(
     case "netlify":
       break;
     default:
-      error(`Unknown provider: ${provider}`);
-      info('Supported providers: "github-pages", "netlify"');
-      process.exit(1);
+      throw new DeployError(`Unknown provider: ${provider}`, [
+        'Supported providers: "github-pages", "netlify"',
+      ]);
   }
 
   if (options.dryRun) {
@@ -48,8 +56,7 @@ export async function deploy(
 
   const outputDir = join(projectRoot, "dist");
   if (!existsSync(outputDir)) {
-    error("dist/ directory not found. Run `kanso build` first.");
-    process.exit(1);
+    throw new DeployError("dist/ directory not found. Run `kanso build` first.");
   }
 
   switch (provider) {
@@ -75,9 +82,9 @@ async function deployGitHubPages(
     `[kanso] Deploy: ${new Date().toISOString().slice(0, 19).replace("T", " ")}`;
 
   if (!repo) {
-    error("GitHub repo not configured.");
-    info('Add to kanso.config.js: deploy: { repo: "username/repo" }');
-    process.exit(1);
+    throw new DeployError("GitHub repo not configured.", [
+      'Add to kanso.config.js: deploy: { repo: "username/repo" }',
+    ]);
   }
 
   try {
@@ -106,18 +113,23 @@ async function deployGitHubPages(
     const msg = e instanceof Error ? e.message : String(e);
 
     if (msg.includes("Could not resolve host")) {
-      error("Network error: Could not connect to GitHub.");
-      info("Check your internet connection and try again.");
+      throw new DeployError("Network error: Could not connect to GitHub.", [
+        "Check your internet connection and try again.",
+      ]);
     } else if (msg.includes("Authentication failed") || msg.includes("403")) {
-      error("Authentication failed: Invalid or missing GitHub token.");
-      info("Set GITHUB_TOKEN environment variable or configure SSH key.");
+      throw new DeployError(
+        "Authentication failed: Invalid or missing GitHub token.",
+        [
+          "Set GITHUB_TOKEN environment variable or configure SSH key.",
+        ]
+      );
     } else if (msg.includes("does not exist") || msg.includes("does not have a repository")) {
-      error(`Repository not found: ${repo}`);
-      info("Verify the repo name in kanso.config.js and ensure it exists on GitHub.");
+      throw new DeployError(`Repository not found: ${repo}`, [
+        "Verify the repo name in kanso.config.js and ensure it exists on GitHub.",
+      ]);
     } else {
-      error(`GitHub Pages deploy failed: ${msg}`);
+      throw new DeployError(`GitHub Pages deploy failed: ${msg}`);
     }
-    process.exit(1);
   }
 }
 
@@ -128,10 +140,10 @@ async function deployNetlify(
   const token = process.env.NETLIFY_AUTH_TOKEN;
 
   if (!token) {
-    error("NETLIFY_AUTH_TOKEN not set.");
-    info("Set it via: export NETLIFY_AUTH_TOKEN=your-token");
-    info("Get a token at: https://app.netlify.com/user/applications#personal-access-tokens");
-    process.exit(1);
+    throw new DeployError("NETLIFY_AUTH_TOKEN not set.", [
+      "Set it via: export NETLIFY_AUTH_TOKEN=your-token",
+      "Get a token at: https://app.netlify.com/user/applications#personal-access-tokens",
+    ]);
   }
 
   try {
@@ -141,9 +153,9 @@ async function deployNetlify(
     });
     success("Deployed to Netlify!");
   } catch {
-    error("Netlify deploy failed. Is netlify-cli installed?");
-    info("Install: npm install -g netlify-cli");
-    process.exit(1);
+    throw new DeployError("Netlify deploy failed. Is netlify-cli installed?", [
+      "Install: npm install -g netlify-cli",
+    ]);
   }
 }
 
@@ -159,34 +171,12 @@ async function dryRun(
     return;
   }
 
-  const { readdirSync, statSync } = await import("fs");
-  let fileCount = 0;
-  let totalSize = 0;
-
-  function countFiles(dir: string) {
-    const entries = readdirSync(dir, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = join(dir, entry.name);
-      if (entry.isDirectory()) {
-        countFiles(fullPath);
-      } else {
-        fileCount++;
-        totalSize += statSync(fullPath).size;
-      }
-    }
-  }
-  countFiles(outputDir);
-
-  const sizeStr =
-    totalSize < 1024
-      ? `${totalSize} B`
-      : totalSize < 1048576
-        ? `${(totalSize / 1024).toFixed(1)} KB`
-        : `${(totalSize / 1048576).toFixed(1)} MB`;
+  const { count, size: totalSize } = countFilesInDir(outputDir);
+  const sizeStr = formatBytes(totalSize);
 
   console.log("Dry run — no files will be published\n");
   console.log(`  Provider: ${provider}`);
-  console.log(`  Files:    ${fileCount} files`);
+  console.log(`  Files:    ${count} files`);
   console.log(`  Size:     ${sizeStr}`);
   console.log(`  Output:   ${outputDir}`);
   console.log("");
@@ -201,8 +191,12 @@ async function loadDeployConfig(
 
   if (existsSync(configPath)) {
     const mod = await import(configPath);
-    const cfg = { ...defaultConfig, ...mod.default };
-    return cfg.deploy as DeployConfig;
+    const cfg = {
+      ...defaultConfig,
+      ...mod.default,
+      deploy: { ...defaultConfig.deploy, ...mod.default?.deploy },
+    };
+    return cfg.deploy;
   }
-  return defaultConfig.deploy as DeployConfig;
+  return defaultConfig.deploy;
 }

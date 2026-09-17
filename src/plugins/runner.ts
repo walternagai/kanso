@@ -1,4 +1,4 @@
-import { readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { info } from "../utils/logger.js";
 
@@ -49,26 +49,25 @@ export class PluginRunner {
     };
   }
 
-  async loadPlugins(projectRoot: string): Promise<void> {
+  async loadPlugins(projectRoot: string, plugins?: string[]): Promise<void> {
     if (this.loaded) return;
 
-    const configPath = join(projectRoot, "kanso.config.js");
-    if (!existsSync(configPath)) {
-      this.loaded = true;
-      return;
+    let pluginNames: string[] = [];
+    if (plugins && plugins.length > 0) {
+      pluginNames = plugins;
+    } else {
+      const configPath = join(projectRoot, "kanso.config.js");
+      if (existsSync(configPath)) {
+        const rawConfig = readFileSync(configPath, "utf-8");
+        const pluginMatch = rawConfig.match(/plugins\s*:\s*\[([\s\S]*?)\]/);
+        if (pluginMatch) {
+          pluginNames = pluginMatch[1]
+            .split(",")
+            .map((p) => p.trim().replace(/['"]/g, ""))
+            .filter(Boolean);
+        }
+      }
     }
-
-    const rawConfig = readFileSync(configPath, "utf-8");
-    const pluginMatch = rawConfig.match(/plugins\s*:\s*\[([\s\S]*?)\]/);
-    if (!pluginMatch) {
-      this.loaded = true;
-      return;
-    }
-
-    const pluginNames = pluginMatch[1]
-      .split(",")
-      .map((p) => p.trim().replace(/['"]/g, ""))
-      .filter(Boolean);
 
     const api = this.createApi();
 

@@ -1,4 +1,5 @@
 export interface KansoConfig {
+  plugins?: string[];
   site: {
     title: string;
     url: string;

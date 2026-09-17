@@ -1,0 +1,87 @@
+task: dedup-extract-shared
+status: approved
+domain: coding
+done: "(1) handler estático único (createStaticHandler em engine/) usado por serve e dev server, com teste cobrindo os dois; (2) formatBytes/calculateDirSize movidos para utils/ e reusados em build e deploy; (3) PluginRunner recebe plugins do config importado (sem regex sobre source); (4) MIME lookup com extname lowercase — npm run lint ✅ e npm test 100% pass, grep confirma zero duplicação restante"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Impacto médio (manutenibilidade), esforço médio; agrupa 4 deduplicações/melhórias estruturais sem mudar comportamento externo"
+  answered: true
+  skipped: false
+think:
+  problem: "Duplicação e fragilidade estrutural: (1) handler HTTP duplicado entre src/commands/serve.ts:35-66 e src/engine/server.ts:138-183 (já divergindo: serve não injeta live-reload); (2) formatBytes/calculateDirSize duplicados e divergentes (KB vs KiB labels) entre build.ts:403-408 e deploy.ts:150-173; (3) plugin discovery por regex sobre o source do config (runner.ts:62) quebra com comentários/arrays multilinha; (4) MIME_TYPES indexado sem lowercase (serve.ts:45-46, server.ts:150-151) — arquivo .JPG serve octet-stream"
+  assumptions:
+    - "createStaticHandler com opção injectLiveReload cobre a única divergência real entre os dois handlers"
+    - "config já importado em build.ts:382 pode ser passado ao PluginRunner sem ciclo de dependência"
+    - "mover funções para utils/ não quebra imports públicos (nenhuma exportada hoje)"
+  alternatives:
+    - "alt A: unificar dev server e serve num único comando — descartado: escopo maior, comportamentos divergem de propósito (WS reload)"
+    - "alt B: extrair handler como função em engine/ — escolhido: mínima, reusa nos dois pontos"
+    - "alt C: parse do config via import dinâmico no runner — descartado: config já é importado no build; passar objeto é mais simples"
+  unknowns: "Se plugins usam config.plugins como string crua em algum caso (checar tipos do PluginRunner antes de mudar a assinatura)"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "createStaticHandler em engine/static-handler.ts com injectLiveReload opcional; utils/fs.ts com calculateDirSize+countFilesInDir+formatBytes; runner mantem fallback regex mas recebe lista do config importado; getMimeType com lowercase"
+  answered: true
+  skipped: false
+intent:
+  code_does: "handlers HTTP duplicados; funcoes fs/format duplicadas e divergentes; plugins descobertos por regex"
+  check_expects: "serve.test.ts existente continua passando (handler novo); MIME uppercase retorna image/jpeg (teste novo)"
+  spec_says: "comportamento externo inalterado; dedup puramente estrutural"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/static-handler.ts
+    - src/engine/static-handler.test.ts
+    - src/engine/server.ts
+    - src/commands/serve.ts
+    - src/utils/fs.ts
+    - src/engine/build.ts
+    - src/engine/deploy.ts
+    - src/plugins/runner.ts
+    - src/config.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 2
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "KansoConfig.plugins adicionado como opcional; interface com plugins no config do usuario deve ser documentada"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
