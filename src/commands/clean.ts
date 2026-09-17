@@ -1,15 +1,40 @@
 import { rmSync, existsSync } from "fs";
 import { join } from "path";
-import { success, info } from "../utils/logger.js";
+import { success, info, error } from "../utils/logger.js";
+import { loadConfig } from "../engine/build.js";
 
-export function cleanCommand(): void {
-  const distDir = join(process.cwd(), "dist");
+export async function cleanCommand(): Promise<void> {
+  const projectRoot = process.cwd();
+  const hasConfig = existsSync(join(projectRoot, "kanso.config.js"));
+  const hasContent = existsSync(join(projectRoot, "content"));
 
-  if (!existsSync(distDir)) {
-    info("dist/ does not exist, nothing to clean.");
+  if (!hasConfig && !hasContent) {
+    error("This does not look like a Kanso project (no kanso.config.js or content/).");
+    info("Run `kanso init <name>` first.");
+    process.exit(1);
+  }
+
+  const config = await loadConfig(projectRoot);
+  const outputDir = join(projectRoot, config.output.dir);
+
+  if (outputDir === projectRoot) {
+    error(
+      `Refusing to delete: output.dir ("${config.output.dir}") resolves to the project root.`
+    );
+    process.exit(1);
+  }
+  if (existsSync(join(outputDir, "kanso.config.js"))) {
+    error(
+      `Refusing to delete: output.dir ("${config.output.dir}") contains kanso.config.js.`
+    );
+    process.exit(1);
+  }
+
+  if (!existsSync(outputDir)) {
+    info(`${config.output.dir}/ does not exist, nothing to clean.`);
     return;
   }
 
-  rmSync(distDir, { recursive: true, force: true });
-  success("dist/ removed.");
+  rmSync(outputDir, { recursive: true, force: true });
+  success(`${config.output.dir}/ removed.`);
 }
