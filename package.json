@@ -10,7 +10,7 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "test": "tsc && node --test dist/**/*.test.js",
-    "coverage": "c8 --reporter=text --reporter=lcov npm test",
+    "coverage": "node ./node_modules/c8/bin/c8.js --reporter=text --reporter=lcov npm test",
     "lint": "tsc --noEmit && eslint src/",
     "lint:tsc": "tsc --noEmit",
     "lint:eslint": "eslint src/"
