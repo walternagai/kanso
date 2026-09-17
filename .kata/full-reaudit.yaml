@@ -1,0 +1,81 @@
+task: full-reaudit
+status: approved
+domain: coding
+done: "relatório de re-audit entregue com status dos 14 achados originais e novos achados priorizados, sem alteração de código"
+base_commit: "c47af0a"
+approved_commit: ""
+fit:
+  trivial: false
+  route: question
+  reason: "Full re-audit do codebase — revalidar 14 achados originais + caçar regressões e novos problemas; usuário escolheu escopo 'Full re-audit'; nenhum código alterado"
+  answered: true
+  skipped: false
+think:
+  problem: "Re-auditar o codebase Kanso (~20 tasks desde a primeira análise em base 02d0d97): validar item a item os 14 achados originais (corrigido/parcial/aberto/regrediu), re-executar verificações da análise original (lint, test, greps de padrões), caçar novos problemas nos arquivos novos/modificados e checar consistência entre módulos"
+  assumptions:
+    - "Os 14 achados originais são reconstruíveis dos registros .kata/*.yaml das tasks de correção (fix-safety-critical, fix-config-merge-date, engine-arch-improvements, cli-usability, dedup-extract-shared, minor-cleanup) + code-review-improvements, que citam cada problema com arquivo:linha da época"
+    - "npm run lint, npm test e npm run coverage refletem a qualidade atual"
+    - "Evidência de status = leitura do código atual com arquivo:linha"
+  alternatives:
+    - "alt A: auditar só arquivos modificados — descartado: regressões podem estar em arquivos não tocados"
+    - "alt B: confiar nos YAMLs de correção como prova de resolução — descartado: re-audit valida por observação no código atual"
+    - "alt C: re-leitura completa dos 14 achados + greps dirigidos + leitura dos arquivos novos — escolhido"
+  unknowns: "Estado atual exato dos 14 achados (a validar); se novas features F1-F8 introduziram padrões que a análise original condenava"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "N/A — rota question, nenhum código será alterado"
+  answered: true
+  skipped: false
+intent:
+  code_does: ""
+  check_expects: ""
+  spec_says: ""
+  all_agree: true
+  conflict_resolution: ""
+  answered: true
+  skipped: false
+surgical:
+  files: []
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 98.63
+  coverage_pass: true
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+  notes: "npm run lint exit 0 (tsc --noEmit + eslint 0 warnings); npm test 200/200 pass em 43 suites (era 165 na análise original); coverage c8 98.63% (npm run coverage falha neste ambiente com 'c8: Exec format error' — rodado via node node_modules/c8/bin/c8.js); relatório entregue sem alteração de código"
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: false
+  intent_present: true
+  auth_owed: false
+  auth_present: true
+  pending_owed: false
+  pending_present: true
+  twins_owed: false
+  twins_present: true
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: "Aplicar correções dos novos achados priorizados (N1 deploy hardcode dist/, N2 clean.ts sem guarda/config, N3 title cru em front matter YAML) em tasks kata próprias"
+  documented: true
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
