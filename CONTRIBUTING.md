@@ -15,8 +15,11 @@ npm install
 # Build
 npm run build
 
-# Run tests
-node --test dist/**/*.test.js
+# Run tests (compiles then runs node --test)
+npm test
+
+# Lint (tsc --noEmit + eslint)
+npm run lint
 
 # Link for local testing
 npm link
@@ -26,29 +29,36 @@ npm link
 
 ```
 src/
-  cli.ts              # CLI entry point
-  commands/           # CLI commands (init, build, dev, etc.)
-  engine/             # Core engine (template, content, build, etc.)
+  cli.ts              # CLI entry point (Commander)
+  config.ts           # KansoConfig + defaultConfig
+  commands/           # CLI commands + co-located tests (*.test.ts)
+  engine/             # Core engine (build, template, server, deploy, ...)
   plugins/            # Plugin system
-  themes/             # Built-in themes
-  utils/              # Utilities (logger)
+  themes/             # Built-in themes (inline Nunjucks constants)
+  utils/              # logger, port, slug, fs
+.kata/                # Kata cycle task YAMLs (FIT -> ... -> REPORT)
+eslint.config.js      # ESLint configuration
 ```
+
+Templates are inline in TypeScript — there is no `src/templates/` directory.
 
 ## Adding a Feature
 
 1. Create a branch: `git checkout -b feature/my-feature`
 2. Implement the feature
-3. Add tests
-4. Run `node --test dist/**/*.test.js`
+3. Add tests co-located with the code (`src/**/x.test.ts`)
+4. Run `npm run lint` and `npm test`
 5. Commit with a descriptive message
 6. Push and create a PR
 
 ## Commit Messages
 
 Use conventional commits:
-- `feat(feature): description` for new features
-- `fix(feature): description` for bug fixes
+- `feat(scope): description` for new features
+- `fix(scope): description` for bug fixes
 - `docs: description` for documentation
+- `refactor: description` for internal changes
+- `chore: description` for tooling and maintenance
 - `test: description` for tests
 
 ## Code Style
@@ -56,4 +66,5 @@ Use conventional commits:
 - TypeScript strict mode
 - No comments unless necessary
 - Use async/await over callbacks
-- Handle errors explicitly
+- Handle errors explicitly (typed errors in engine, exit codes in commands)
+- Engine functions must not call `process.exit` — throw and let commands catch
