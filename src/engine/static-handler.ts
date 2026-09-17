@@ -38,7 +38,7 @@ export function createStaticHandler(
 
       if (options.injectLiveReload && ext === ".html") {
         let html = content.toString();
-        html = html.replace("</body>", `${injectScript(options.wsPort || 3000)}</body>`);
+        html = html.replace("</body>", `${getWsClientScript(options.wsPort || 3000)}</body>`);
         res.writeHead(200, { "Content-Type": contentType });
         res.end(html);
       } else {
@@ -50,7 +50,7 @@ export function createStaticHandler(
       if (existsSync(indexPath)) {
         let html = readFileSync(indexPath, "utf-8");
         if (options.injectLiveReload) {
-          html = html.replace("</body>", `${injectScript(options.wsPort || 3000)}</body>`);
+          html = html.replace("</body>", `${getWsClientScript(options.wsPort || 3000)}</body>`);
         }
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(html);
@@ -59,7 +59,7 @@ export function createStaticHandler(
         if (existsSync(notFound)) {
           let html = readFileSync(notFound, "utf-8");
           if (options.injectLiveReload) {
-            html = html.replace("</body>", `${injectScript(options.wsPort || 3000)}</body>`);
+            html = html.replace("</body>", `${getWsClientScript(options.wsPort || 3000)}</body>`);
           }
           res.writeHead(404, { "Content-Type": "text/html" });
           res.end(html);
@@ -70,10 +70,6 @@ export function createStaticHandler(
       }
     }
   };
-}
-
-function injectScript(_port: number): string {
-  return getWsClientScript(_port);
 }
 
 function getWsClientScript(_port: number): string {
