@@ -40,10 +40,14 @@ Kanso CLI is a modern, simple, and fast static site generator for HTML, CSS, Jav
 ## Installation
 
 ```bash
-npm install -g kanso
+npm install -g kanso-dev
 ```
 
 **Requirements:** Node.js >= 18
+
+**Note:** the `kanso` package name on npm belongs to a legacy project
+(CouchApps). This project is published as **`kanso-dev`** — after
+installing globally, the CLI command is `kanso`.
 
 ---
 
