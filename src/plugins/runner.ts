@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "fs";
+import { existsSync } from "fs";
 import { join } from "path";
 import { info } from "../utils/logger.js";
 
@@ -49,29 +49,12 @@ export class PluginRunner {
     };
   }
 
-  async loadPlugins(projectRoot: string, plugins?: string[]): Promise<void> {
+  async loadPlugins(projectRoot: string, plugins: string[]): Promise<void> {
     if (this.loaded) return;
-
-    let pluginNames: string[] = [];
-    if (plugins && plugins.length > 0) {
-      pluginNames = plugins;
-    } else {
-      const configPath = join(projectRoot, "kanso.config.js");
-      if (existsSync(configPath)) {
-        const rawConfig = readFileSync(configPath, "utf-8");
-        const pluginMatch = rawConfig.match(/plugins\s*:\s*\[([\s\S]*?)\]/);
-        if (pluginMatch) {
-          pluginNames = pluginMatch[1]
-            .split(",")
-            .map((p) => p.trim().replace(/['"]/g, ""))
-            .filter(Boolean);
-        }
-      }
-    }
 
     const api = this.createApi();
 
-    for (const pluginName of pluginNames) {
+    for (const pluginName of plugins) {
       try {
         const pluginPath = join(projectRoot, "node_modules", pluginName);
         if (existsSync(pluginPath)) {

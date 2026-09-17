@@ -146,32 +146,29 @@ describe("PluginRunner — loadPlugins", () => {
     rmSync(TEST_DIR, { recursive: true, force: true });
   });
 
-  it("loadPlugins returns early when no config file exists", async () => {
+  it("loadPlugins with empty list loads nothing", async () => {
     const runner = new PluginRunner();
-    await runner.loadPlugins(TEST_DIR);
-    // Should not throw — early return at line 56-59
-    assert.ok(true);
-  });
-
-  it("loadPlugins returns early when config has no plugins", async () => {
-    writeFileSync(
-      join(TEST_DIR, "kanso.config.js"),
-      'export default { site: { title: "Test" } };'
-    );
-    const runner = new PluginRunner();
-    await runner.loadPlugins(TEST_DIR);
-    // Should not throw — no plugins regex match at lines 62-66
+    await runner.loadPlugins(TEST_DIR, []);
     assert.ok(true);
   });
 
   it("loadPlugins skips non-existent plugins", async () => {
+    const runner = new PluginRunner();
+    await runner.loadPlugins(TEST_DIR, ["nonexistent-plugin"]);
+    assert.ok(true);
+  });
+
+  it("loadPlugins loads a local plugin module", async () => {
+    const pluginDir = join(TEST_DIR, "node_modules", "test-plugin");
+    mkdirSync(pluginDir, { recursive: true });
     writeFileSync(
-      join(TEST_DIR, "kanso.config.js"),
-      'export default { plugins: ["nonexistent-plugin"] };'
+      join(pluginDir, "index.js"),
+      `export default function(api) { api.on("build:start", () => { called = true; }); }
+       var called = false;
+       export var isCalled = () => called;`
     );
     const runner = new PluginRunner();
-    await runner.loadPlugins(TEST_DIR);
-    // Should not throw — plugin not found at line 85
+    await runner.loadPlugins(TEST_DIR, ["test-plugin"]);
     assert.ok(true);
   });
 });

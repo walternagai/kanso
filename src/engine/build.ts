@@ -32,7 +32,7 @@ export async function build(
 
   const config = await loadConfig(projectRoot);
 
-  await pluginRunner.loadPlugins(projectRoot, config.plugins);
+  await pluginRunner.loadPlugins(projectRoot, config.plugins ?? []);
   const contentDir = join(projectRoot, config.content.dir);
   const outputDir = join(projectRoot, config.output.dir);
 
