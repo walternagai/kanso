@@ -21,6 +21,12 @@ export function postCommand(title: string, options: PostOptions): void {
   const projectRoot = process.cwd();
   const postsDir = join(projectRoot, "content", "posts");
 
+  if (!existsSync(join(projectRoot, "content"))) {
+    error("content/ directory not found.");
+    info("This does not look like a Kanso project. Run `kanso init` first.");
+    process.exit(1);
+  }
+
   if (!existsSync(postsDir)) {
     mkdirSync(postsDir, { recursive: true });
   }
