@@ -5,6 +5,7 @@ import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
 import { postCommand } from "./commands/post.js";
+import { pageCommand } from "./commands/page.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
@@ -40,6 +41,7 @@ program.addHelpText("after", `
 Examples:
   kanso init my-site        Create a new project
   kanso post "My Post"      Create a new blog post
+  kanso page "About"        Create a new static page
   kanso dev                 Start dev server with hot reload
   kanso build               Build for production
   kanso deploy --dry-run    Preview deployment
@@ -64,6 +66,12 @@ program
   .option("-l, --layout <layout>", "Template layout", "post")
   .option("--description <desc>", "Post description for SEO")
   .action(postCommand);
+
+program
+  .command("page <title>")
+  .description("Create a new static page")
+  .option("-l, --layout <layout>", "Template layout", "base")
+  .action(pageCommand);
 
 program
   .command("dev")

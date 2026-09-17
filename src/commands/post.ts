@@ -1,23 +1,13 @@
 import { writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
 import { success, error, info } from "../utils/logger.js";
+import { titleToSlug } from "../utils/slug.js";
 
 interface PostOptions {
   date?: string;
   tags?: string;
   layout?: string;
   description?: string;
-}
-
-function titleToSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
 }
 
 export function postCommand(title: string, options: PostOptions): void {

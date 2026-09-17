@@ -1,0 +1,83 @@
+task: f2-kanso-page-command
+status: approved
+domain: coding
+done: "kanso page <title> cria content/<slug>/index.md (ou content/<slug>.md conforme convenção escolhida no implemento) com front matter layout: page, validando título vazio e arquivo existente como post faz; npm run lint ✅ e npm test 100% pass com testes do novo comando"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Comando novo espelhando post.ts (~40 linhas + testes); resolve gap #4 da revisão"
+  answered: true
+  skipped: false
+think:
+  problem: "Não existe comando para criar páginas estáticas (about, contact) — o iniciante precisa criar .md manualmente sem saber a convenção de front matter. kanso page <title> deve criar a página no diretório de content (não em posts/), com front matter mínimo (title, layout) e sem date/tags de blog."
+  assumptions:
+    - "Páginas ficam em content/ raiz (content/about.md -> /about/), posts em content/posts/ (convenção atual do markdownToHtmlPath)"
+    - "layout default para página é base (não post)"
+    - "reuso de titleToSlug: extrair para utils/ ou duplicar 8 linhas? — extrair para utils/slug.ts se usado por 2+ comandos"
+  alternatives:
+    - "alt A: kanso post --page flag — descartado: sobrecarrega comando de blog com semântica de página"
+    - "alt B: kanso page com subcomandos (page new/list) — descartado: speculação; um comando simples basta"
+    - "alt C: duplicar titleToSlug em page.ts — descartado: 2 usos = extrair para utils/slug.ts"
+  unknowns: "Se init.test.ts e post.test.ts quebram com a extração do slug (checar imports antes)"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "titleToSlug extraido para utils/slug.ts (2 usos); page.ts ~50 linhas; layout default base; sem date"
+  answered: true
+  skipped: false
+intent:
+  code_does: "nao existia comando para paginas estaticas"
+  check_expects: "page cria content/<slug>.md com title/layout base e sem date; rejeita vazio e duplicado (exit 1)"
+  spec_says: "paginas ficam na raiz de content/ (convencao markdownToHtmlPath)"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/page.ts
+    - src/commands/page.test.ts
+    - src/commands/post.ts
+    - src/utils/slug.ts
+    - src/cli.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 1
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false
