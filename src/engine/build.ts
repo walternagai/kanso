@@ -422,7 +422,7 @@ function htmlToUrl(htmlPath: string): string {
   return "/" + htmlPath.replace(/index\.html$/, "").replace(/^\//, "");
 }
 
-async function loadConfig(projectRoot: string) {
+export async function loadConfig(projectRoot: string) {
   const configPath = join(projectRoot, "kanso.config.js");
   const { defaultConfig } = await import("../config.js");
 

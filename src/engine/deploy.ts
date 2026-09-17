@@ -1,9 +1,10 @@
 import { execSync, execFileSync } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
-import { build } from "./build.js";
+import { build, loadConfig } from "./build.js";
 import { heading, success, error, info } from "../utils/logger.js";
 import { countFilesInDir, formatBytes } from "../utils/fs.js";
+import { KansoConfig } from "../config.js";
 
 export interface DeployOptions {
   dryRun?: boolean;
@@ -45,8 +46,11 @@ export async function deploy(
       ]);
   }
 
+  const fullConfig = await loadConfig(projectRoot);
+  const outputDir = join(projectRoot, fullConfig.output.dir);
+
   if (options.dryRun) {
-    await dryRun(projectRoot, provider, config);
+    await dryRun(outputDir, provider);
     return;
   }
 
@@ -54,27 +58,27 @@ export async function deploy(
     await build(projectRoot);
   }
 
-  const outputDir = join(projectRoot, "dist");
   if (!existsSync(outputDir)) {
-    throw new DeployError("dist/ directory not found. Run `kanso build` first.");
+    throw new DeployError(
+      `Output directory not found: ${fullConfig.output.dir}. Run \`kanso build\` first.`
+    );
   }
 
   switch (provider) {
     case "github-pages":
-      await deployGitHubPages(projectRoot, config, options);
+      await deployGitHubPages(outputDir, config, options);
       break;
     case "netlify":
-      await deployNetlify(projectRoot, config);
+      await deployNetlify(outputDir, config);
       break;
   }
 }
 
 async function deployGitHubPages(
-  projectRoot: string,
+  outputDir: string,
   config: DeployConfig,
   options: DeployOptions
 ): Promise<void> {
-  const outputDir = join(projectRoot, "dist");
   const repo = config.repo;
   const branch = config.branch || "gh-pages";
   const commitMsg =
@@ -134,7 +138,7 @@ async function deployGitHubPages(
 }
 
 async function deployNetlify(
-  projectRoot: string,
+  outputDir: string,
   _config: DeployConfig
 ): Promise<void> {
   const token = process.env.NETLIFY_AUTH_TOKEN;
@@ -147,8 +151,8 @@ async function deployNetlify(
   }
 
   try {
-    execSync("netlify deploy --prod --dir=dist", {
-      cwd: projectRoot,
+    execSync(`netlify deploy --prod --dir=${outputDir}`, {
+      cwd: process.cwd(),
       stdio: "inherit",
     });
     success("Deployed to Netlify!");
@@ -160,14 +164,11 @@ async function deployNetlify(
 }
 
 async function dryRun(
-  projectRoot: string,
-  provider: string,
-  _config: DeployConfig
+  outputDir: string,
+  provider: string
 ): Promise<void> {
-  const outputDir = join(projectRoot, "dist");
-
   if (!existsSync(outputDir)) {
-    error("dist/ not found. Run `kanso build` first.");
+    error("Output directory not found. Run `kanso build` first.");
     return;
   }
 
@@ -191,12 +192,11 @@ async function loadDeployConfig(
 
   if (existsSync(configPath)) {
     const mod = await import(configPath);
-    const cfg = {
-      ...defaultConfig,
-      ...mod.default,
-      deploy: { ...defaultConfig.deploy, ...mod.default?.deploy },
+    const user = mod.default as Partial<KansoConfig>;
+    return {
+      ...defaultConfig.deploy,
+      ...user?.deploy,
     };
-    return cfg.deploy;
   }
   return defaultConfig.deploy;
 }
