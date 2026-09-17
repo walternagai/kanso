@@ -1,4 +1,4 @@
-import { execSync } from "child_process";
+import { execSync, execFileSync } from "child_process";
 import { existsSync } from "fs";
 import { join } from "path";
 import { build } from "./build.js";
@@ -27,6 +27,16 @@ export async function deploy(
   const config = await loadDeployConfig(projectRoot);
   const provider = options.provider || config.provider;
 
+  switch (provider) {
+    case "github-pages":
+    case "netlify":
+      break;
+    default:
+      error(`Unknown provider: ${provider}`);
+      info('Supported providers: "github-pages", "netlify"');
+      process.exit(1);
+  }
+
   if (options.dryRun) {
     await dryRun(projectRoot, provider, config);
     return;
@@ -49,10 +59,6 @@ export async function deploy(
     case "netlify":
       await deployNetlify(projectRoot, config);
       break;
-    default:
-      error(`Unknown provider: ${provider}`);
-      info('Supported providers: "github-pages", "netlify"');
-      process.exit(1);
   }
 }
 
@@ -75,11 +81,17 @@ async function deployGitHubPages(
   }
 
   try {
-    execSync("git init", { cwd: outputDir, stdio: "pipe" });
-    execSync(`git checkout -b ${branch}`, { cwd: outputDir, stdio: "pipe" });
-    execSync("git add -A", { cwd: outputDir, stdio: "pipe" });
-    execSync(`git commit -m "${commitMsg}"`, { cwd: outputDir, stdio: "pipe" });
-    execSync(`git push origin ${branch} --force`, {
+    execFileSync("git", ["init"], { cwd: outputDir, stdio: "pipe" });
+    execFileSync("git", ["checkout", "-B", branch], {
+      cwd: outputDir,
+      stdio: "pipe",
+    });
+    execFileSync("git", ["add", "-A"], { cwd: outputDir, stdio: "pipe" });
+    execFileSync("git", ["commit", "-m", commitMsg], {
+      cwd: outputDir,
+      stdio: "pipe",
+    });
+    execFileSync("git", ["push", "origin", branch, "--force"], {
       cwd: outputDir,
       stdio: "pipe",
       env: { ...process.env },

@@ -18,6 +18,7 @@ export interface BuildResult {
   assetsCopied: number;
   buildTime: number;
   totalSize: number;
+  errors: string[];
 }
 
 const pluginRunner = new PluginRunner();
@@ -34,6 +35,18 @@ export async function build(projectRoot: string): Promise<BuildResult> {
   await pluginRunner.runHook("config:loaded", config);
 
   if (existsSync(outputDir)) {
+    if (outputDir === projectRoot) {
+      throw new Error(
+        `Refusing to delete: output.dir ("${config.output.dir}") resolves to the project root. ` +
+          `Set a dedicated output directory (e.g. "dist") in kanso.config.js.`
+      );
+    }
+    if (existsSync(join(outputDir, "kanso.config.js"))) {
+      throw new Error(
+        `Refusing to delete: output.dir ("${config.output.dir}") contains kanso.config.js ` +
+          `and does not look like a build output directory.`
+      );
+    }
     rmSync(outputDir, { recursive: true, force: true });
   }
   mkdirSync(outputDir, { recursive: true });
@@ -243,7 +256,7 @@ export async function build(projectRoot: string): Promise<BuildResult> {
     duration: buildTime,
   });
 
-  return { pages: pagesBuilt, assetsCopied: assetResult.filesCopied, buildTime, totalSize };
+  return { pages: pagesBuilt, assetsCopied: assetResult.filesCopied, buildTime, totalSize, errors };
 }
 
 async function buildPaginatedPage(
@@ -380,7 +393,20 @@ async function loadConfig(projectRoot: string) {
 
   if (existsSync(configPath)) {
     const mod = await import(configPath);
-    return { ...defaultConfig, ...mod.default };
+    const user = mod.default as Partial<typeof defaultConfig>;
+    return {
+      ...defaultConfig,
+      ...user,
+      site: { ...defaultConfig.site, ...user?.site },
+      content: { ...defaultConfig.content, ...user?.content },
+      output: { ...defaultConfig.output, ...user?.output },
+      markdown: { ...defaultConfig.markdown, ...user?.markdown },
+      seo: { ...defaultConfig.seo, ...user?.seo },
+      feed: { ...defaultConfig.feed, ...user?.feed },
+      pagination: { ...defaultConfig.pagination, ...user?.pagination },
+      build: { ...defaultConfig.build, ...user?.build },
+      deploy: { ...defaultConfig.deploy, ...user?.deploy },
+    };
   }
   return defaultConfig;
 }

@@ -1,0 +1,89 @@
+task: fix-safety-critical
+status: approved
+domain: coding
+done: "(1) path traversal bloqueado: req.url com '..' fora de outputDir retorna 403/404, com teste reproduzindo; (2) deploy usa execFileSync/array de args sem interpolação de shell, com teste de commitMsg contendo aspas/$(); (3) build com páginas falhadas sai com exit code 1; (4) rmSync recusa deletar se output.dir resolver para projectRoot ou diretório inesperado não-vazio — npm run lint ✅ e npm test 100% pass"
+base_commit: "02d0d97d7f6c4eb101157423c37723216316f9f1"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Impacto alto (segurança + correção), esforço médio, 4 arquivos (server.ts, serve.ts, deploy.ts, build.ts + commands/build.ts)"
+  answered: true
+  skipped: false
+think:
+  problem: "Quatro defeitos críticos de segurança/correção: (1) path traversal em src/engine/server.ts:147 e src/commands/serve.ts:42 — join(outputDir, urlPath) aceita '..' e em bind 0.0.0.0 expõe arquivos fora de dist/; (2) shell injection em src/engine/deploy.ts:78-86 — commitMsg interpolado em string de git commit; (3) build.ts resolve normalmente com páginas falhadas — exit 0 em CI verde com erro (build.ts:149-152, 219-231); (4) rmSync(outputDir, {recursive, force}) em build.ts:36-38 destrói dist/ (ou pior, se output.dir mal configurado) sem guarda, ao contrário de init/theme add que pedem --force"
+  assumptions:
+    - "path.resolve + path.relative é suficiente para conter o path dentro de outputDir"
+    - "execFileSync com array de args não invoca shell — remove a superfície de injection"
+    - "mudar exit code de build para 1 com erros é a semântica correta p/ CI; documentar no --help"
+    - "guarda do rmSync: recusar se output.dir === projectRoot ou se dir contém kanso.config.js"
+  alternatives:
+    - "alt A: sanitizar urlPath com regex antes do join — descartado: frágil, encoding contorna"
+    - "alt B: validar com path.relative(outputDir, filePath).startsWith('..') após join — escolhido: padrão consolidado, relative já importado em server.ts"
+    - "alt C: prompt de confirmação antes de rmSync — descartado: quebra automação/CI; guarda estática + flag --force futura é melhor"
+    - "alt D: deploy com shell:true escapando aspas — descartado: frágil por natureza; array de args é a correção"
+  unknowns: "Como os testes atuais stubam process.exit em engine (theme.error.test.ts:11-25) — mudar build para sinalizar erro via BuildResult.errors não deve exigir stub novo; confirmar ao implementar"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "relative(outputDir, filePath).startsWith('..') em ambos os handlers; execFileSync com array de args; BuildResult.errors -> exit(1); guarda rmSync por projectRoot e kanso.config.js"
+  answered: true
+  skipped: false
+intent:
+  code_does: "handlers aceitavam '..' no urlPath; deploy interpolava commitMsg em shell string; rmSync deletava outputDir sem guarda"
+  check_expects: "GET /../ fora de outputDir -> 403 (teste novo); git via array de args (sem shell); build falho -> exit 1; output.dir == projectRoot -> throw"
+  spec_says: "dev server serve apenas dist/; deploy nao deve executar shell com input do usuario"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/engine/server.ts
+    - src/commands/serve.ts
+    - src/engine/deploy.ts
+    - src/engine/build.ts
+    - src/commands/build.ts
+    - src/commands/serve.test.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 2
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: "join(outputDir,"
+  result: "server.ts e serve.ts — ambos corrigidos nesta task"
+  searched: true
+  defect_fixed: true
+  matches_count: 2
+  files_count: 2
+  fix_applied: true
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

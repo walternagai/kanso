@@ -146,6 +146,12 @@ function handleRequest(
 
   const filePath = join(outputDir, urlPath);
 
+  if (relative(outputDir, filePath).startsWith("..")) {
+    res.writeHead(403, { "Content-Type": "text/plain" });
+    res.end("403 Forbidden");
+    return;
+  }
+
   if (existsSync(filePath) && statSync(filePath).isFile()) {
     const ext = extname(filePath);
     const contentType = MIME_TYPES[ext] || "application/octet-stream";

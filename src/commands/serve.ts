@@ -1,6 +1,6 @@
 import { createServer, IncomingMessage, ServerResponse } from "http";
 import { readFileSync, existsSync, statSync } from "fs";
-import { join, extname } from "path";
+import { join, extname, relative } from "path";
 import { heading, error, info } from "../utils/logger.js";
 import { MIME_TYPES } from "../engine/mime.js";
 
@@ -40,6 +40,12 @@ export function createHandler(
     if (urlPath === "/") urlPath = "/index.html";
 
     const filePath = join(outputDir, urlPath);
+
+    if (relative(outputDir, filePath).startsWith("..")) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("403 Forbidden");
+      return;
+    }
 
     if (existsSync(filePath) && statSync(filePath).isFile()) {
       const ext = extname(filePath);

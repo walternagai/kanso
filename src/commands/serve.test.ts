@@ -84,7 +84,51 @@ describe("createHandler", () => {
       assert.ok(res.body.includes("<h1>Custom Not Found</h1>"));
     });
   });
+
+  it("blocks path traversal outside outputDir", async () => {
+    const { createHandler } = await import("./serve.js");
+    await withServerRaw(createHandler(outputDir), "/../kanso.config.js", async (base) => {
+      const res = await fetchRaw(base.host, base.port, "/../kanso.config.js");
+      assert.strictEqual(res.status, 403);
+    });
+  });
 });
+
+function withServerRaw(
+  handler: (req: http.IncomingMessage, res: http.ServerResponse) => void,
+  _rawPath: string,
+  fn: (base: { host: string; port: number }) => Promise<void>
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const server = createServer(handler);
+    let port: number;
+    server.listen(0, () => {
+      port = (server.address() as { port: number }).port;
+      fn({ host: "localhost", port }).then(
+        () => server.close(() => resolve()),
+        (err) => { server.close(() => reject(err)); }
+      );
+    });
+  });
+}
+
+function fetchRaw(
+  host: string,
+  port: number,
+  rawPath: string
+): Promise<{ status: number; body: string }> {
+  return new Promise((resolve, reject) => {
+    http
+      .get({ host, port, path: rawPath }, (res) => {
+        let body = "";
+        res.on("data", (chunk) => (body += chunk));
+        res.on("end", () =>
+          resolve({ status: res.statusCode || 0, body })
+        );
+      })
+      .on("error", reject);
+  });
+}
 
 function fetch(url: string): Promise<{ status: number; body: string }> {
   return new Promise((resolve, reject) => {
