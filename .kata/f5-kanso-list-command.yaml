@@ -1,0 +1,81 @@
+task: f5-kanso-list-command
+status: approved
+domain: coding
+done: "kanso list imprime posts e páginas de content/ com status (draft: 'draft', publicado: data), ordenados por data desc para posts; kanso post/page avisam quando arquivo já existe (já ok em post, garantir em page); npm run lint ✅ e npm test 100% pass com testes do novo comando"
+base_commit: "b323e9d1fcfdaca881fb0c2d9845a47b89f6045a"
+fit:
+  trivial: false
+  route: code-loop
+  reason: "Novo comando de gerenciamento de conteúdo; resolve gaps #5 e #7 da revisão"
+  answered: true
+  skipped: false
+think:
+  problem: "Não há como ver o que existe no projeto sem inspecionar o filesystem — iniciante não sabe quais posts/páginas existem, quais são rascunhos, quais têm data. Um kanso list simples fecha o loop de gerenciamento básico."
+  assumptions:
+    - "list lê front matter dos .md de content/ (matter já disponível); não precisa do build engine"
+    - "output: seção Posts (com data e [draft] quando draft: true) e seção Pages (content/ raiz); vazio -> 'No posts yet. Run kanso post'"
+    - "fora de projeto kanso -> mesma mensagem de orientação do build"
+  alternatives:
+    - "alt A: kanso list --posts/--pages flags — descartado: default mostra tudo; flags são especulação"
+    - "alt B: formato JSON com --json — descartado: especulação; adicionar depois se houver demanda"
+    - "alt C: integrar em kanso status — descartado: theme status já existe com outra semântica; confundiria"
+  unknowns: "Nenhum bloqueante; convenção de páginas = .md na raiz de content (confirmado no audit E2E: content/about.md -> /about/)"
+  answered: true
+  skipped: false
+simplify:
+  minimum_code: true
+  no_single_use_abstractions: true
+  no_speculative_config: true
+  notes: "scanDir recursivo p/ posts, nao-recursivo p/ pages; date normalizada (gray-matter parseia como Date); secoes Home/Pages/Posts"
+  answered: true
+  skipped: false
+intent:
+  code_does: "nao havia visibilidade do conteudo do projeto"
+  check_expects: "list mostra posts ordenados por data desc, [draft] marcado, secoes Pages e Posts separadas; fora de projeto -> orientacao kanso init"
+  spec_says: "gray-matter parseia date YAML como objeto Date — normalizar para YYYY-MM-DD"
+  all_agree: true
+  answered: true
+  skipped: false
+surgical:
+  files:
+    - src/commands/list.ts
+    - src/commands/list.test.ts
+    - src/cli.ts
+  removed_imports_clean: true
+  answered: true
+  skipped: false
+verify:
+  ruff_clean: true
+  tests_pass: true
+  coverage_pct: 0.0
+  coverage_pass: false
+  success_criteria_met: true
+  attempts: 3
+  hand_back: false
+preflight:
+  skills_missing: []
+artifact:
+  intent_owed: true
+  intent_present: true
+  auth_owed: false
+  auth_present: false
+  pending_owed: false
+  pending_present: false
+  twins_owed: false
+  twins_present: false
+auth:
+  action_taken: false
+  authorized: false
+  action: ""
+  quote: ""
+pending:
+  action: ""
+  documented: false
+twins:
+  pattern: ""
+  result: ""
+  searched: false
+  defect_fixed: false
+  matches_count: 0
+  files_count: 0
+  fix_applied: false

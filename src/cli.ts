@@ -6,6 +6,7 @@ import { dirname, join } from "path";
 import { initCommand } from "./commands/init.js";
 import { postCommand } from "./commands/post.js";
 import { pageCommand } from "./commands/page.js";
+import { listCommand } from "./commands/list.js";
 import { buildCommand } from "./commands/build.js";
 import { devCommand } from "./commands/dev.js";
 import { deployCommand } from "./commands/deploy.js";
@@ -42,6 +43,7 @@ Examples:
   kanso init my-site        Create a new project
   kanso post "My Post"      Create a new blog post
   kanso page "About"        Create a new static page
+  kanso list                List pages and posts
   kanso dev                 Start dev server with hot reload
   kanso build               Build for production
   kanso deploy --dry-run    Preview deployment
@@ -73,6 +75,11 @@ program
   .description("Create a new static page")
   .option("-l, --layout <layout>", "Template layout", "base")
   .action(pageCommand);
+
+program
+  .command("list")
+  .description("List pages and posts in the current project")
+  .action(listCommand);
 
 program
   .command("dev")
